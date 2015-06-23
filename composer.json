@@ -1,0 +1,68 @@
+{
+	"name": "cartalyst/data-grid-laravel",
+	"description": "HTML markup templating on the client side, simple API on the server side. Incredibly simple and easy to use.",
+	"keywords": [
+		"php",
+		"cartalyst",
+		"laravel",
+		"data grid",
+		"filter",
+		"search",
+		"pagination"
+	],
+	"license": "proprietary",
+	"authors": [
+		{
+			"name": "Cartalyst LLC",
+			"email": "help@cartalyst.com"
+		},
+		{
+			"name": "Ben Corlett",
+			"email": "ben.corlett@cartalyst.com",
+			"role": "Developer"
+		},
+		{
+			"name": "Bruno Gaspar",
+			"email": "bruno.gaspar@cartalyst.com",
+			"role": "Developer"
+		},
+		{
+			"name": "Dan Syme",
+			"email": "dan.syme@cartalyst.com",
+			"role": "Project Lead"
+		},
+		{
+			"name": "Suhayb Wardany",
+			"email": "su.wardany@cartalyst.com",
+			"role": "Developer"
+		}
+	],
+	"repositories": [
+        {
+            "type": "composer",
+            "url": "http://packages.cartalyst.com"
+        }
+    ],
+	"require": {
+		"php": ">=5.3.0",
+        "cartalyst/data-grid": "~4.0",
+        "illuminate/database": "~5.0"
+	},
+	"require-dev": {
+		"cartalyst/attributes": "~1.0",
+		"mockery/mockery": "~0.9",
+		"phpunit/phpunit": "~4.4"
+	},
+	"autoload": {
+		"psr-4": {
+			"Cartalyst\\DataGrid\\Laravel\\": "src"
+		}
+	},
+	"extra": {
+		"component": "package",
+		"branch-alias": {
+			"dev-master": "4.0.x-dev"
+		}
+	},
+	"minimum-stability": "dev"
+}
