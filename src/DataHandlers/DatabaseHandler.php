@@ -203,33 +203,37 @@ class DatabaseHandler extends BaseHandler
 
             $column = $this->calculateSortColumn($column);
 
-            if ($column)
+            if (! $column)
             {
-                if (array_key_exists($column, $this->settings->get('sorts')) && is_callable($this->settings->get('sorts')[$column]))
+                continue;
+            }
+
+            if (array_key_exists($column, $this->settings->get('sorts')) && is_callable($this->settings->get('sorts')[$column]))
+            {
+                // Apply custom sort logic
+                call_user_func_array($this->settings->get('sorts')[$column], $data, $column, $direction);
+            }
+            else
+            {
+                // We are going to prepend our sort order to the data
+                // as SQL allows for multiple sort. By appending it,
+                // a predefined sort may override ours.
+                if (is_array($data->orders))
                 {
-                    // Apply custom sort logic
-                    call_user_func_array($this->settings->get('sorts')[$column], $data, $column, $direction);
+                    array_unshift($data->orders, compact('column', 'direction'));
                 }
+
+                // If no orders have been defined, the orders property
+                // is set to null. At this point, we cannot unshift a
+                // sort order to the front, so we will use the API.
                 else
                 {
-                    // We are going to prepend our sort order to the data
-                    // as SQL allows for multiple sort. By appending it,
-                    // a predefined sort may override ours.
-                    if (is_array($data->orders))
-                    {
-                        array_unshift($data->orders, compact('column', 'direction'));
-                    }
-
-                    // If no orders have been defined, the orders property
-                    // is set to null. At this point, we cannot unshift a
-                    // sort order to the front, so we will use the API.
-                    else
-                    {
-                        $data->orderBy($column, $direction);
-                    }
+                    $data->orderBy($column, $direction);
                 }
             }
         }
+
+        $this->setSort($sorts);
     }
 
     /**
@@ -412,9 +416,9 @@ class DatabaseHandler extends BaseHandler
         {
             $cols = explode('..', $column);
 
-            $query->whereHas(head($cols), function ($q) use ($cols, $operator, $value)
+            $query->whereHas(reset($cols), function ($q) use ($cols, $operator, $value)
             {
-                $q->where(last($cols), $operator, $value);
+                $q->where(end($cols), $operator, $value);
             });
         }
         elseif (array_search($column, $this->attributes) !== false)
