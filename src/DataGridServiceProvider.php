@@ -30,7 +30,7 @@ class DataGridServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-//        $this->configureDomPdf();
+        $this->configureDomPdf();
     }
 
     /**
@@ -38,7 +38,7 @@ class DataGridServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->prepareResources();
+//        $this->prepareResources();
 
 //        $this->registerIlluminateRequestProvider();
     }

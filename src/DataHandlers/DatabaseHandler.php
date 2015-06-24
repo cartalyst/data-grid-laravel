@@ -61,10 +61,11 @@ class DatabaseHandler extends BaseHandler
      */
     protected $eavClass;
 
-    public function __construct($data, $settings)
+    /**
+     * @inheritdoc
+     */
+    public function validateSource($data)
     {
-        parent::__construct($data, $settings);
-
         $this->eavClass = get_class($data);
 
         // If the data is an instance of an Eloquent model,
@@ -83,6 +84,7 @@ class DatabaseHandler extends BaseHandler
         else if ($data instanceof EloquentQueryBuilder)
         {
             $model = $data->getModel();
+            $data = $data->getQuery();
 
             $this->appends = array_keys($model->attributesToArray());
 
@@ -102,6 +104,7 @@ class DatabaseHandler extends BaseHandler
             throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a databse query.');
         }
 
+        return $data;
     }
 
     /**
@@ -109,7 +112,7 @@ class DatabaseHandler extends BaseHandler
      */
     public function prepareTotalCount()
     {
-        $this->totalCount = $this->prepareCount();
+        $this->params->set('total', $this->prepareCount());
     }
 
     /**
@@ -168,7 +171,7 @@ class DatabaseHandler extends BaseHandler
      */
     public function prepareFilteredCount()
     {
-        $this->filteredCount = $this->prepareCount();
+        $this->params->set('filtered', $this->prepareCount());
     }
 
     /**
@@ -188,13 +191,16 @@ class DatabaseHandler extends BaseHandler
             $data = $data->getQuery();
         }
 
-        $sorts = $this->request->getSort();
+        $sorts      = $this->request->getSort();
+        $applied    = [];
 
         // If request doesn't provide sort, set the defaults
         if (empty($sorts) && $this->settings->has('sort'))
         {
             $sorts = [$this->settings->get('sort')];
         }
+
+        $data->orders = [];
 
         foreach ($sorts as $sort)
         {
@@ -215,25 +221,16 @@ class DatabaseHandler extends BaseHandler
             }
             else
             {
-                // We are going to prepend our sort order to the data
-                // as SQL allows for multiple sort. By appending it,
-                // a predefined sort may override ours.
-                if (is_array($data->orders))
-                {
-                    array_unshift($data->orders, compact('column', 'direction'));
-                }
-
-                // If no orders have been defined, the orders property
-                // is set to null. At this point, we cannot unshift a
-                // sort order to the front, so we will use the API.
-                else
-                {
-                    $data->orderBy($column, $direction);
-                }
+                $data->orderBy($column, $direction);
             }
+
+            $applied[] = [
+                'column' => $column,
+                'direction' => $direction,
+            ];
         }
 
-        $this->setSort($sorts);
+        $this->params->set('sort', $applied);
     }
 
     /**
@@ -241,30 +238,37 @@ class DatabaseHandler extends BaseHandler
      */
     public function preparePagination($paginate = true)
     {
+        $filteredCount = $this->params->get('filtered');
+
         // If our filtered results are zero, let's not set any pagination
-        if ($this->filteredCount == 0)
+        if ($filteredCount == 0)
         {
-            return;
+            return null;
         }
 
         if (! $paginate)
         {
-            return $this->filteredCount;
+            return $filteredCount;
         }
 
-        $page = $this->request->getPage();
+        $page       = $this->request->getPage();
+        $method     = $this->request->getMethod();
+        $threshold  = $this->request->getThreshold();
+        $throttle   = $this->request->getThrottle();
 
-        $method = $this->request->getMethod();
+        list($pagesCount, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
 
-        $threshold = $this->request->getThreshold();
+        list($page, $previousPage, $nextPage) = $this->calculatePages($filteredCount, $page, $perPage);
 
-        $throttle = $this->request->getThrottle();
+        $this->data->forPage($page, $perPage);
 
-        list($this->pagesCount, $this->perPage) = $this->calculatePagination($this->filteredCount, $method, $threshold, $throttle);
-
-        list($this->page, $this->previousPage, $this->nextPage) = $this->calculatePages($this->filteredCount, $page, $this->perPage);
-
-        $this->data->forPage($this->page, $this->perPage);
+        $this->params->add([
+            'page'          => $page,
+            'pages'         => $pagesCount,
+            'previous_page' => $previousPage,
+            'next_page'     => $nextPage,
+            'per_page'      => $perPage,
+        ]);
     }
 
     /**
@@ -303,7 +307,7 @@ class DatabaseHandler extends BaseHandler
     {
         if (! $column)
         {
-            return;
+            return null;
         }
 
         $index = array_search($column, $this->settings->get('columns'));
