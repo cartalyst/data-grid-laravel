@@ -191,15 +191,18 @@ class DatabaseHandler extends BaseHandler
             $data = $data->getQuery();
         }
 
-        $sorts      = $this->request->getSort();
-        $applied    = [];
-
+        $requestedSort = $this->request->getSort();
         // If request doesn't provide sort, set the defaults
-        if (empty($sorts) && $this->settings->has('sort'))
+        if (empty($requestedSort) && $this->settings->has('sort'))
         {
             $sorts = [$this->settings->get('sort')];
         }
+        else
+        {
+            $sorts = $requestedSort;
+        }
 
+        $applied    = [];
         $data->orders = [];
 
         foreach ($sorts as $sort)
@@ -230,7 +233,10 @@ class DatabaseHandler extends BaseHandler
             ];
         }
 
-        $this->params->set('sort', $applied);
+        if (!empty($requestedSort))
+        {
+            $this->params->set('sort', $applied);
+        }
     }
 
     /**
