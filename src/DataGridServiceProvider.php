@@ -51,7 +51,7 @@ class DataGridServiceProvider extends ServiceProvider
     protected function prepareResources()
     {
         // Publish config
-        $config = realpath(__DIR__.'/../config/config.php');
+        $config = realpath(__DIR__ . '/../config/config.php');
 
         $this->mergeConfigFrom($config, 'cartalyst.data-grid');
 
@@ -60,7 +60,7 @@ class DataGridServiceProvider extends ServiceProvider
         ], 'config');
 
         // Publish assets
-        $assets = realpath(__DIR__.'/../../public');
+        $assets = realpath(__DIR__ . '/../../public');
 
         $this->publishes([
             $assets => public_path('assets/cartalyst/data-grid'),
@@ -96,7 +96,7 @@ class DataGridServiceProvider extends ServiceProvider
      */
     protected function configureDomPdf()
     {
-        $configFile = base_path().'/vendor/dompdf/dompdf/dompdf_config.inc.php';
+        $configFile = base_path() . '/vendor/dompdf/dompdf/dompdf_config.inc.php';
 
         if ($this->app['files']->exists($configFile)) {
             if (! defined('DOMPDF_ENABLE_AUTOLOAD')) {

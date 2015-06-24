@@ -32,7 +32,7 @@ class ArrayableStub implements Arrayable
     /**
      * Constructor.
      *
-     * @param  bool  $nested
+     * @param  bool $nested
      * @return void
      */
     public function __construct($nested = false)
@@ -49,16 +49,16 @@ class ArrayableStub implements Arrayable
     {
         $data = array(
             'first_name' => 'Dan',
-            'last_name'  => 'Syme',
-            'gender'     => 'male',
-            'sortable'   => 'foo-13',
-            'age'        => 30,
+            'last_name' => 'Syme',
+            'gender' => 'male',
+            'sortable' => 'foo-13',
+            'age' => 30,
         );
 
         if ($this->nested) {
             $data['address'] = array(
                 'street' => array('name' => 'foo-street'),
-                'city'   =>  $data['first_name'] . '-city',
+                'city' => $data['first_name'] . '-city',
             );
         }
 

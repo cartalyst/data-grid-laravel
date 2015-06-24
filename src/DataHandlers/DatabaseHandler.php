@@ -70,26 +70,21 @@ class DatabaseHandler extends BaseHandler
 
         // If the data is an instance of an Eloquent model,
         // we'll grab a new query from it.
-        if ($data instanceof Model)
-        {
+        if ($data instanceof Model) {
             $this->appends = array_keys($data->attributesToArray());
 
-            if (method_exists($data, 'availableAttributes'))
-            {
+            if (method_exists($data, 'availableAttributes')) {
                 $this->attributes = $data->availableAttributes()->lists($this->attributesKey);
             }
 
             $data = $data->newQuery();
-        }
-        else if ($data instanceof EloquentQueryBuilder)
-        {
+        } elseif ($data instanceof EloquentQueryBuilder) {
             $model = $data->getModel();
             $data = $data->getQuery();
 
             $this->appends = array_keys($model->attributesToArray());
 
-            if (method_exists($model, 'availableAttributes'))
-            {
+            if (method_exists($model, 'availableAttributes')) {
                 $this->attributes = $model->availableAttributes()->lists($this->attributesKey);
             }
         }
@@ -99,8 +94,8 @@ class DatabaseHandler extends BaseHandler
         if (! $data instanceof QueryBuilder and
             ! $data instanceof EloquentQueryBuilder and
             ! $data instanceof HasMany and
-            ! $data instanceof BelongsToMany)
-        {
+            ! $data instanceof BelongsToMany
+        ) {
             throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a databse query.');
         }
 
@@ -129,10 +124,8 @@ class DatabaseHandler extends BaseHandler
         // value is the alias. Otherwise, there is no alias and we're
         // dealing directly with the column name. Aliases are used
         // quite often for joined tables.
-        foreach ($this->settings->get('columns') as $key => $value)
-        {
-            if (! in_array($value, $this->appends) && array_search($value, $this->attributes) === false)
-            {
+        foreach ($this->settings->get('columns') as $key => $value) {
+            if (! in_array($value, $this->appends) && array_search($value, $this->attributes) === false) {
                 $toSelect[] = is_numeric($key) ? $value : "{$key} as {$value}";
             }
         }
@@ -149,18 +142,15 @@ class DatabaseHandler extends BaseHandler
 
         list($columnFilters, $globalFilters) = $this->getFilters();
 
-        foreach ($columnFilters as $filter)
-        {
+        foreach ($columnFilters as $filter) {
             list($column, $operator, $value) = $filter;
             $this->applyFilter($this->data, $column, $operator, $value);
         }
 
-        foreach ($globalFilters as $filter)
-        {
+        foreach ($globalFilters as $filter) {
             list($operator, $value) = $filter;
 
-            $this->data->whereNested(function ($data) use ($me, $operator, $value)
-            {
+            $this->data->whereNested(function ($data) use ($me, $operator, $value) {
                 $me->globalFilter($data, $operator, $value);
             });
         }
@@ -181,49 +171,41 @@ class DatabaseHandler extends BaseHandler
     {
         $data = $this->data;
 
-        if ($data instanceof HasMany or $data instanceof BelongsToMany)
-        {
+        if ($data instanceof HasMany or $data instanceof BelongsToMany) {
             $data = $data->getQuery();
         }
 
-        if ($data instanceof EloquentQueryBuilder)
-        {
+        if ($data instanceof EloquentQueryBuilder) {
             $data = $data->getQuery();
         }
 
         $requestedSort = $this->request->getSort();
         // If request doesn't provide sort, set the defaults
-        if (empty($requestedSort) && $this->settings->has('sort'))
-        {
+        if (empty($requestedSort) && $this->settings->has('sort')) {
             $sorts = [$this->settings->get('sort')];
-        }
-        else
-        {
+        } else {
             $sorts = $requestedSort;
         }
 
-        $applied    = [];
+        $applied = [];
         $data->orders = [];
 
-        foreach ($sorts as $sort)
-        {
-            $column     = (array_key_exists('column', $sort) ? $sort['column'] : null);
-            $direction  = (array_key_exists('direction', $sort) ? $sort['direction'] : null);
+        foreach ($sorts as $sort) {
+            $column = (array_key_exists('column', $sort) ? $sort['column'] : null);
+            $direction = (array_key_exists('direction', $sort) ? $sort['direction'] : null);
 
             $column = $this->calculateSortColumn($column);
 
-            if (! $column)
-            {
+            if (! $column) {
                 continue;
             }
 
-            if (array_key_exists($column, $this->settings->get('sorts')) && is_callable($this->settings->get('sorts')[$column]))
-            {
+            if (array_key_exists($column,
+                    $this->settings->get('sorts')) && is_callable($this->settings->get('sorts')[$column])
+            ) {
                 // Apply custom sort logic
                 call_user_func_array($this->settings->get('sorts')[$column], $data, $column, $direction);
-            }
-            else
-            {
+            } else {
                 $data->orderBy($column, $direction);
             }
 
@@ -233,8 +215,7 @@ class DatabaseHandler extends BaseHandler
             ];
         }
 
-        if (!empty($requestedSort))
-        {
+        if (! empty($requestedSort)) {
             $this->params->set('sort', $applied);
         }
     }
@@ -247,20 +228,18 @@ class DatabaseHandler extends BaseHandler
         $filteredCount = $this->params->get('filtered');
 
         // If our filtered results are zero, let's not set any pagination
-        if ($filteredCount == 0)
-        {
+        if ($filteredCount == 0) {
             return null;
         }
 
-        if (! $paginate)
-        {
+        if (! $paginate) {
             return $filteredCount;
         }
 
-        $page       = $this->request->getPage();
-        $method     = $this->request->getMethod();
-        $threshold  = $this->request->getThreshold();
-        $throttle   = $this->request->getThrottle();
+        $page = $this->request->getPage();
+        $method = $this->request->getMethod();
+        $threshold = $this->request->getThreshold();
+        $throttle = $this->request->getThrottle();
 
         list($pagesCount, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
 
@@ -269,11 +248,11 @@ class DatabaseHandler extends BaseHandler
         $this->data->forPage($page, $perPage);
 
         $this->params->add([
-            'page'          => $page,
-            'pages'         => $pagesCount,
+            'page' => $page,
+            'pages' => $pagesCount,
             'previous_page' => $previousPage,
-            'next_page'     => $nextPage,
-            'per_page'      => $perPage,
+            'next_page' => $nextPage,
+            'per_page' => $perPage,
         ]);
     }
 
@@ -282,8 +261,7 @@ class DatabaseHandler extends BaseHandler
      */
     public function hydrate($maxResults = null)
     {
-        if ($maxResults)
-        {
+        if ($maxResults) {
             $this->data->limit($maxResults);
         }
 
@@ -311,8 +289,7 @@ class DatabaseHandler extends BaseHandler
      */
     public function calculateSortColumn($column = null)
     {
-        if (! $column)
-        {
+        if (! $column) {
             return null;
         }
 
@@ -321,15 +298,13 @@ class DatabaseHandler extends BaseHandler
         $key = $index !== false ? $index : false;
 
         // If the sort column doesn't exist, something has gone wrong
-        if ($key === false)
-        {
+        if ($key === false) {
             throw new RuntimeException("Sort column [{$column}] does not exist in data.");
         }
 
         // If our column is an alias, we'll use the actual
         // value instead of the alias for sorting.
-        if (! is_numeric($key) && ! is_bool($key))
-        {
+        if (! is_numeric($key) && ! is_bool($key)) {
             $column = $key;
         }
 
@@ -341,24 +316,19 @@ class DatabaseHandler extends BaseHandler
      * filter is applied in a "or where" fashion, where
      * the value can be matched across any column.
      *
-     * @param  \Illuminate\Database\Query\Builder  $nestedQuery
-     * @param  string  $operator
-     * @param  string  $value
+     * @param  \Illuminate\Database\Query\Builder $nestedQuery
+     * @param  string $operator
+     * @param  string $value
      * @return void
      */
     public function globalFilter(QueryBuilder $nestedQuery, $operator, $value)
     {
-        if (is_callable($this->settings->get('global')))
-        {
+        if (is_callable($this->settings->get('global'))) {
             // Apply custom sort logic
             call_user_func($this->settings->get('global'), $nestedQuery, $operator, $value);
-        }
-        else
-        {
-            foreach ($this->settings->get('columns') as $key => $_value)
-            {
-                if (is_numeric($key))
-                {
+        } else {
+            foreach ($this->settings->get('columns') as $key => $_value) {
+                if (is_numeric($key)) {
                     $key = $_value;
                 }
 
@@ -386,11 +356,11 @@ class DatabaseHandler extends BaseHandler
     /**
      * Applies a filter to the given query.
      *
-     * @param  mixed  $query
-     * @param  string  $column
-     * @param  string  $operator
-     * @param  mixed  $value
-     * @param  string  $method
+     * @param  mixed $query
+     * @param  string $column
+     * @param  string $operator
+     * @param  mixed $value
+     * @param  string $method
      * @return void
      */
     protected function applyFilter($query, $column, $operator, $value, $method = 'and')
@@ -408,8 +378,7 @@ class DatabaseHandler extends BaseHandler
                     $method .= 'Raw';
                 }
 
-                if ($this->getConnection() instanceof MySqlDatabaseConnection)
-                {
+                if ($this->getConnection() instanceof MySqlDatabaseConnection) {
                     $query->{$method}("{$column} {$operator} ?", [$value]);
                 }
 
@@ -422,17 +391,13 @@ class DatabaseHandler extends BaseHandler
                 return;
         }
 
-        if (strpos($column, '..') !== false)
-        {
+        if (strpos($column, '..') !== false) {
             $cols = explode('..', $column);
 
-            $query->whereHas(reset($cols), function ($q) use ($cols, $operator, $value)
-            {
+            $query->whereHas(reset($cols), function ($q) use ($cols, $operator, $value) {
                 $q->where(end($cols), $operator, $value);
             });
-        }
-        elseif (array_search($column, $this->attributes) !== false)
-        {
+        } elseif (array_search($column, $this->attributes) !== false) {
             $valueModel = new Value;
 
             $matches = $valueModel->newQuery()
@@ -442,28 +407,19 @@ class DatabaseHandler extends BaseHandler
 
             $key = $query->getModel()->getKeyName();
 
-            if (! $matches->toArray())
-            {
+            if (! $matches->toArray()) {
                 $query->where($key, null);
             }
 
-            foreach ($matches as $match)
-            {
+            foreach ($matches as $match) {
                 $query->{$method}($key, $operator, $match->entity_id);
             }
-        }
-        else
-        {
-            if ($value === '%null%')
-            {
+        } else {
+            if ($value === '%null%') {
                 $query->whereNull($column);
-            }
-            elseif ($value === '%not_null%')
-            {
+            } elseif ($value === '%not_null%') {
                 $query->whereNotNull($column);
-            }
-            else
-            {
+            } else {
                 $query->{$method}($column, $operator, $value);
             }
         }

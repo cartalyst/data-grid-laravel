@@ -103,7 +103,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGettingSimpleFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
         $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
@@ -142,7 +143,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGettingNullFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
         $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
@@ -181,7 +183,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGettingComplexFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(true);
 
@@ -209,14 +212,15 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         );
         $actual = $handler->getFilters();
         $this->assertCount(2, $actual);
-        list($actual, ) = $actual;
+        list($actual,) = $actual;
 
         $this->assertEquals($expected, $actual);
     }
 
     public function testSettingUpColumnFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
         $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
@@ -286,7 +290,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testOperatorFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
         $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
@@ -307,7 +312,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testNestedFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
         $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
@@ -379,7 +385,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $query->orders = array(
             array(
-                'column'    => 'corge',
+                'column' => 'corge',
                 'direction' => 'asc',
             ),
         );
@@ -545,14 +551,16 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpPaginationLeavesDefaultParametersIfNoFilteredResultsArePresent()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
 
         $handler->preparePagination();
     }
 
     public function testSettingUpPaginationWithOnePage()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
         $handler->setFilteredCount(10);
 
         $request = $dataGrid->getEnvironment()->getRequestProvider();
@@ -574,7 +582,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpPaginationOnPage2Of3()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
         $handler->setFilteredCount(30);
 
         $request = $dataGrid->getEnvironment()->getRequestProvider();
@@ -596,7 +605,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpPaginationOnPage3Of3()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]', array($dataGrid = $this->getMockDataGridBuilder()));
+        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]',
+            array($dataGrid = $this->getMockDataGridBuilder()));
         $handler->setFilteredCount(30);
 
         $request = $dataGrid->getEnvironment()->getRequestProvider();
@@ -625,8 +635,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             $result2 = new stdClass,
         );
 
-        $result1->foo   = 'bar';
-        $result1->baz   = 'qux';
+        $result1->foo = 'bar';
+        $result1->baz = 'qux';
         $result2->corge = 'fred';
 
         $dataGrid->getData()->shouldReceive('get')->andReturn($results);
@@ -676,8 +686,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
 
         $expected = new \Illuminate\Database\Eloquent\Collection(array(
-            new \Illuminate\Database\Eloquent\Collection(array('foo' => 'bar', 'baz' => new \Illuminate\Database\Eloquent\Collection(array('name' => 'foo')))),
-            new \Illuminate\Database\Eloquent\Collection(array('corge' => 'fred', 'baz' => new \Illuminate\Database\Eloquent\Collection(array('name' => 'bar')))),
+            new \Illuminate\Database\Eloquent\Collection(array(
+                'foo' => 'bar',
+                'baz' => new \Illuminate\Database\Eloquent\Collection(array('name' => 'foo'))
+            )),
+            new \Illuminate\Database\Eloquent\Collection(array(
+                'corge' => 'fred',
+                'baz' => new \Illuminate\Database\Eloquent\Collection(array('name' => 'bar'))
+            )),
         ));
 
         $handler->getData()->shouldReceive('get')->andReturn($expected);
@@ -703,6 +719,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             'foo',
             'bar.baz' => 'qux',
         ));
+
         return $dataGrid;
     }
 
@@ -718,6 +735,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             'foo',
             'bar.baz' => 'qux',
         ));
+
         return $dataGrid;
     }
 
@@ -733,11 +751,13 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             'foo',
             'bar.baz' => 'qux',
         ));
+
         return $dataGrid;
     }
 }
 
-class Foo extends Eloquent implements EntityInterface {
+class Foo extends Eloquent implements EntityInterface
+{
 
     use EntityTrait;
 
