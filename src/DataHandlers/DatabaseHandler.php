@@ -20,6 +20,7 @@
 
 namespace Cartalyst\DataGrid\Laravel\DataHandlers;
 
+use Cartalyst\DataGrid\Contracts\Hydrator;
 use Cartalyst\DataGrid\DataHandlers\BaseHandler;
 use RuntimeException;
 use InvalidArgumentException;
@@ -111,6 +112,16 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
+     * Counts data records.
+     *
+     * @return int
+     */
+    protected function prepareCount()
+    {
+        return $this->data->count();
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function prepareSelect()
@@ -154,203 +165,6 @@ class DatabaseHandler extends BaseHandler
                 $me->globalFilter($data, $operator, $value);
             });
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function prepareFilteredCount()
-    {
-        $this->params->set('filtered', $this->prepareCount());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function prepareSort()
-    {
-        $data = $this->data;
-
-        if ($data instanceof HasMany or $data instanceof BelongsToMany) {
-            $data = $data->getQuery();
-        }
-
-        if ($data instanceof EloquentQueryBuilder) {
-            $data = $data->getQuery();
-        }
-
-        $requestedSort = $this->request->getSort();
-        // If request doesn't provide sort, set the defaults
-        if (empty($requestedSort) && $this->settings->has('sort')) {
-            $sorts = [$this->settings->get('sort')];
-        } else {
-            $sorts = $requestedSort;
-        }
-
-        $applied = [];
-        $data->orders = [];
-
-        foreach ($sorts as $sort) {
-            $column = (array_key_exists('column', $sort) ? $sort['column'] : null);
-            $direction = (array_key_exists('direction', $sort) ? $sort['direction'] : null);
-
-            $column = $this->calculateSortColumn($column);
-
-            if (! $column) {
-                continue;
-            }
-
-            if (array_key_exists($column,
-                    $this->settings->get('sorts')) && is_callable($this->settings->get('sorts')[$column])
-            ) {
-                // Apply custom sort logic
-                call_user_func_array($this->settings->get('sorts')[$column], $data, $column, $direction);
-            } else {
-                $data->orderBy($column, $direction);
-            }
-
-            $applied[] = [
-                'column' => $column,
-                'direction' => $direction,
-            ];
-        }
-
-        if (! empty($requestedSort)) {
-            $this->params->set('sort', $applied);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function preparePagination($paginate = true)
-    {
-        $filteredCount = $this->params->get('filtered');
-
-        // If our filtered results are zero, let's not set any pagination
-        if ($filteredCount == 0) {
-            return null;
-        }
-
-        if (! $paginate) {
-            return $filteredCount;
-        }
-
-        $page = $this->request->getPage();
-        $method = $this->request->getMethod();
-        $threshold = $this->request->getThreshold();
-        $throttle = $this->request->getThrottle();
-
-        list($pagesCount, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
-
-        list($page, $previousPage, $nextPage) = $this->calculatePages($filteredCount, $page, $perPage);
-
-        $this->data->forPage($page, $perPage);
-
-        $this->params->add([
-            'page' => $page,
-            'pages' => $pagesCount,
-            'previous_page' => $previousPage,
-            'next_page' => $nextPage,
-            'per_page' => $perPage,
-        ]);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function hydrate($maxResults = null)
-    {
-        if ($maxResults) {
-            $this->data->limit($maxResults);
-        }
-
-        $this->results = $this->data->get();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function supportsRegexFilters()
-    {
-        $regex = false;
-
-        switch ($connection = $this->getConnection()) {
-            case $connection instanceof MySqlDatabaseConnection:
-                $regex = true;
-                break;
-        }
-
-        return $regex;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function calculateSortColumn($column = null)
-    {
-        if (! $column) {
-            return null;
-        }
-
-        $index = array_search($column, $this->settings->get('columns'));
-
-        $key = $index !== false ? $index : false;
-
-        // If the sort column doesn't exist, something has gone wrong
-        if ($key === false) {
-            throw new RuntimeException("Sort column [{$column}] does not exist in data.");
-        }
-
-        // If our column is an alias, we'll use the actual
-        // value instead of the alias for sorting.
-        if (! is_numeric($key) && ! is_bool($key)) {
-            $column = $key;
-        }
-
-        return $column;
-    }
-
-    /**
-     * Applies a global filter across all registered columns. The
-     * filter is applied in a "or where" fashion, where
-     * the value can be matched across any column.
-     *
-     * @param  \Illuminate\Database\Query\Builder $nestedQuery
-     * @param  string $operator
-     * @param  string $value
-     * @return void
-     */
-    public function globalFilter(QueryBuilder $nestedQuery, $operator, $value)
-    {
-        if (is_callable($this->settings->get('global'))) {
-            // Apply custom sort logic
-            call_user_func($this->settings->get('global'), $nestedQuery, $operator, $value);
-        } else {
-            foreach ($this->settings->get('columns') as $key => $_value) {
-                if (is_numeric($key)) {
-                    $key = $_value;
-                }
-
-                $this->applyFilter($nestedQuery, $key, $operator, $value, 'or');
-            }
-        }
-    }
-
-    /**
-     * Returns the connection associated with the handler's data set.
-     *
-     * @return \Illuminate\Database\ConnectionInterface
-     */
-    protected function getConnection()
-    {
-        $data = $this->data;
-
-        if ($data instanceof EloquentQueryBuilder) {
-            $data = $data->getQuery();
-        }
-
-        return $data->getConnection();
     }
 
     /**
@@ -426,11 +240,199 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * Counts data records.
-     * @return int
+     * {@inheritDoc}
      */
-    protected function prepareCount()
+    public function supportsRegexFilters()
     {
-        return $this->data->count();
+        $regex = false;
+
+        switch ($connection = $this->getConnection()) {
+            case $connection instanceof MySqlDatabaseConnection:
+                $regex = true;
+                break;
+        }
+
+        return $regex;
+    }
+
+    /**
+     * Returns the connection associated with the handler's data set.
+     *
+     * @return \Illuminate\Database\ConnectionInterface
+     */
+    protected function getConnection()
+    {
+        $data = $this->data;
+
+        if ($data instanceof EloquentQueryBuilder) {
+            $data = $data->getQuery();
+        }
+
+        return $data->getConnection();
+    }
+
+    /**
+     * Applies a global filter across all registered columns. The
+     * filter is applied in a "or where" fashion, where
+     * the value can be matched across any column.
+     *
+     * @param  \Illuminate\Database\Query\Builder $nestedQuery
+     * @param  string $operator
+     * @param  string $value
+     * @return void
+     */
+    public function globalFilter(QueryBuilder $nestedQuery, $operator, $value)
+    {
+        if (is_callable($this->settings->get('global'))) {
+            // Apply custom sort logic
+            call_user_func($this->settings->get('global'), $nestedQuery, $operator, $value);
+        } else {
+            foreach ($this->settings->get('columns') as $key => $_value) {
+                if (is_numeric($key)) {
+                    $key = $_value;
+                }
+
+                $this->applyFilter($nestedQuery, $key, $operator, $value, 'or');
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function prepareFilteredCount()
+    {
+        $this->params->set('filtered', $this->prepareCount());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function prepareSort()
+    {
+        $data = $this->data;
+
+        if ($data instanceof HasMany or $data instanceof BelongsToMany) {
+            $data = $data->getQuery();
+        }
+
+        if ($data instanceof EloquentQueryBuilder) {
+            $data = $data->getQuery();
+        }
+
+        $requestedSort = $this->request->getSort();
+        // If request doesn't provide sort, set the defaults
+        if (empty($requestedSort) && $this->settings->has('sort')) {
+            $sorts = [$this->settings->get('sort')];
+        } else {
+            $sorts = $requestedSort;
+        }
+
+        $applied = [];
+        $data->orders = [];
+
+        foreach ($sorts as $sort) {
+            $column = (array_key_exists('column', $sort) ? $sort['column'] : null);
+            $direction = (array_key_exists('direction', $sort) ? $sort['direction'] : null);
+
+            $column = $this->calculateSortColumn($column);
+
+            if (! $column) {
+                continue;
+            }
+
+            if (array_key_exists($column,
+                    $this->settings->get('sorts')) && is_callable($this->settings->get('sorts')[$column])
+            ) {
+                // Apply custom sort logic
+                call_user_func_array($this->settings->get('sorts')[$column], $data, $column, $direction);
+            } else {
+                $data->orderBy($column, $direction);
+            }
+
+            $applied[] = [
+                'column' => $column,
+                'direction' => $direction,
+            ];
+        }
+
+        if (! empty($requestedSort)) {
+            $this->params->set('sort', $applied);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function calculateSortColumn($column = null)
+    {
+        if (! $column) {
+            return null;
+        }
+
+        $index = array_search($column, $this->settings->get('columns'));
+
+        $key = $index !== false ? $index : false;
+
+        // If the sort column doesn't exist, something has gone wrong
+        if ($key === false) {
+            throw new RuntimeException("Sort column [{$column}] does not exist in data.");
+        }
+
+        // If our column is an alias, we'll use the actual
+        // value instead of the alias for sorting.
+        if (! is_numeric($key) && ! is_bool($key)) {
+            $column = $key;
+        }
+
+        return $column;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function preparePagination($paginate = true)
+    {
+        $filteredCount = $this->params->get('filtered');
+
+        // If our filtered results are zero, let's not set any pagination
+        if ($filteredCount == 0) {
+            return null;
+        }
+
+        if (! $paginate) {
+            return $filteredCount;
+        }
+
+        $page = $this->request->getPage();
+        $method = $this->request->getMethod();
+        $threshold = $this->request->getThreshold();
+        $throttle = $this->request->getThrottle();
+
+        list($pagesCount, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
+
+        list($page, $previousPage, $nextPage) = $this->calculatePages($filteredCount, $page, $perPage);
+
+        $this->data->forPage($page, $perPage);
+
+        $this->params->add([
+            'page' => $page,
+            'pages' => $pagesCount,
+            'previous_page' => $previousPage,
+            'next_page' => $nextPage,
+            'per_page' => $perPage,
+        ]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function hydrate($maxResults = null)
+    {
+        if ($maxResults) {
+            $this->data->limit($maxResults);
+        }
+
+        $this->results = $this->hydrateResults($this->data->get());
     }
 }
