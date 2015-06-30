@@ -20,6 +20,7 @@
 
 namespace Cartalyst\DataGrid\Laravel;
 
+use Cartalyst\DataGrid\DataGrid;
 use Illuminate\Support\ServiceProvider;
 use Cartalyst\DataGrid\RequestProvider;
 
@@ -38,9 +39,9 @@ class DataGridServiceProvider extends ServiceProvider
      */
     public function register()
     {
-//        $this->prepareResources();
+        $this->prepareResources();
 
-//        $this->registerIlluminateRequestProvider();
+        $this->registerIlluminateRequestProvider();
     }
 
     /**
@@ -51,7 +52,7 @@ class DataGridServiceProvider extends ServiceProvider
     protected function prepareResources()
     {
         // Publish config
-        $config = realpath(__DIR__ . '/../config/config.php');
+        $config = realpath(__DIR__ . '/config/config.php');
 
         $this->mergeConfigFrom($config, 'cartalyst.data-grid');
 
@@ -59,12 +60,13 @@ class DataGridServiceProvider extends ServiceProvider
             $config => config_path('cartalyst.data-grid.php'),
         ], 'config');
 
+        // TODO Publish assets from `cartalyst/data-grid`
         // Publish assets
-        $assets = realpath(__DIR__ . '/../../public');
+//        $assets = realpath(__DIR__ . '/../../public');
 
-        $this->publishes([
-            $assets => public_path('assets/cartalyst/data-grid'),
-        ], 'assets');
+//        $this->publishes([
+//            $assets => public_path('assets/cartalyst/data-grid'),
+//        ], 'assets');
     }
 
     /**
@@ -74,19 +76,15 @@ class DataGridServiceProvider extends ServiceProvider
      */
     protected function registerIlluminateRequestProvider()
     {
-        $this->app['datagrid.request'] = $this->app->share(function ($app) {
-            $config = $app['config']->get('cartalyst.data-grid');
+        $requestProvider = new RequestProvider($this->app['request']);
 
-            $requestProvider = new RequestProvider($app['request'], null, null, $app['view']);
+        $config = $this->app['config']->get('cartalyst.data-grid');
 
-            $requestProvider->setDefaultMethod($config['method']);
+        $requestProvider->setDefaultMethod($config['method']);
+        $requestProvider->setDefaultThreshold($config['threshold']);
+        $requestProvider->setDefaultThrottle($config['throttle']);
 
-            $requestProvider->setDefaultThreshold($config['threshold']);
-
-            $requestProvider->setDefaultThrottle($config['throttle']);
-
-            return $requestProvider;
-        });
+        DataGrid::setRequestProvider($requestProvider);
     }
 
     /**
