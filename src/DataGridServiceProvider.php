@@ -20,7 +20,6 @@
 
 namespace Cartalyst\DataGrid\Laravel;
 
-use Cartalyst\DataGrid\DataGrid;
 use Illuminate\Support\ServiceProvider;
 use Cartalyst\DataGrid\RequestProvider;
 
@@ -42,6 +41,7 @@ class DataGridServiceProvider extends ServiceProvider
         $this->prepareResources();
 
         $this->registerIlluminateRequestProvider();
+        $this->registerDataGrid();
     }
 
     /**
@@ -76,16 +76,31 @@ class DataGridServiceProvider extends ServiceProvider
      */
     protected function registerIlluminateRequestProvider()
     {
-        // TODO Environment and facade
-//        $requestProvider = new RequestProvider($this->app['request']);
-//
-//        $config = $this->app['config']->get('cartalyst.data-grid');
-//
-//        $requestProvider->setDefaultMethod($config['method']);
-//        $requestProvider->setDefaultThreshold($config['threshold']);
-//        $requestProvider->setDefaultThrottle($config['throttle']);
-//
-//        DataGrid::setRequestProvider($requestProvider);
+        $this->app['datagrid.request'] = $this->app->share(function ($app) {
+            $requestProvider = new RequestProvider($app['request']);
+
+            $config = $app['config']->get('cartalyst.data-grid');
+
+            $requestProvider->setDefaultMethod($config['method']);
+            $requestProvider->setDefaultThreshold($config['threshold']);
+            $requestProvider->setDefaultThrottle($config['throttle']);
+
+            return $requestProvider;
+        });
+    }
+
+    /**
+     * Register data grid.
+     *
+     * @return void
+     */
+    protected function registerDataGrid()
+    {
+        $this->app['datagrid'] = $this->app->share(function ($app) {
+            $request = $app['datagrid.request'];
+
+            return new Environment($request);
+        });
     }
 
     /**
