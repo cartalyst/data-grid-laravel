@@ -76,15 +76,16 @@ class DataGridServiceProvider extends ServiceProvider
      */
     protected function registerIlluminateRequestProvider()
     {
-        $requestProvider = new RequestProvider($this->app['request']);
-
-        $config = $this->app['config']->get('cartalyst.data-grid');
-
-        $requestProvider->setDefaultMethod($config['method']);
-        $requestProvider->setDefaultThreshold($config['threshold']);
-        $requestProvider->setDefaultThrottle($config['throttle']);
-
-        DataGrid::setRequestProvider($requestProvider);
+        // TODO Environment and facade
+//        $requestProvider = new RequestProvider($this->app['request']);
+//
+//        $config = $this->app['config']->get('cartalyst.data-grid');
+//
+//        $requestProvider->setDefaultMethod($config['method']);
+//        $requestProvider->setDefaultThreshold($config['threshold']);
+//        $requestProvider->setDefaultThrottle($config['throttle']);
+//
+//        DataGrid::setRequestProvider($requestProvider);
     }
 
     /**
