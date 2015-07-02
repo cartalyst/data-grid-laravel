@@ -20,8 +20,8 @@
 
 namespace Cartalyst\DataGrid\Laravel;
 
+use Cartalyst\DataGrid\Providers\RequestProvider;
 use Illuminate\Support\ServiceProvider;
-use Cartalyst\DataGrid\RequestProvider;
 
 class DataGridServiceProvider extends ServiceProvider
 {

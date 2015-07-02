@@ -17,14 +17,7 @@
  * @link       http://cartalyst.com
  */
 
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Database\Eloquent\Model as EloquentModel;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Builder as EloquentQueryBuilder;
-
-return array(
+return [
 
     /*
     |--------------------------------------------------------------------------
@@ -58,4 +51,4 @@ return array(
     */
 
     'throttle' => 100,
-);
+];
