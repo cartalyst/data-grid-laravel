@@ -113,12 +113,17 @@ class DatabaseHandler extends BaseHandler
 
     /**
      * Counts data records.
+     * Accounts for the bug #4306 on laravel/framework
      *
      * @return int
      */
     protected function prepareCount()
     {
-        return $this->data->count();
+        if (empty($this->data->getQuery()->groups)) {
+            return $this->data->count();
+        }
+
+        return count($this->data->get());
     }
 
     /**
@@ -150,21 +155,34 @@ class DatabaseHandler extends BaseHandler
     public function prepareFilters()
     {
         $me = $this;
+        $applied = [];
 
         list($columnFilters, $globalFilters) = $this->getFilters();
 
         foreach ($columnFilters as $filter) {
             list($column, $operator, $value) = $filter;
+            $applied[] = [
+                'column' => $column,
+                'operator' => $operator,
+                'value' => $value,
+            ];
+
             $this->applyFilter($this->data, $column, $operator, $value);
         }
 
         foreach ($globalFilters as $filter) {
             list($operator, $value) = $filter;
+            $applied[] = [
+                'operator' => $operator,
+                'value' => $value,
+            ];
 
             $this->data->whereNested(function ($data) use ($me, $operator, $value) {
                 $me->globalFilter($data, $operator, $value);
             });
         }
+
+        $this->params->set('filters', $applied);
     }
 
     /**
@@ -302,7 +320,11 @@ class DatabaseHandler extends BaseHandler
      */
     public function prepareFilteredCount()
     {
-        $this->params->set('filtered', $this->prepareCount());
+        if (count($this->params->get('filters'))) {
+            $this->params->set('filtered', $this->prepareCount());
+        } else {
+            $this->params->set('filtered', $this->params->get('total'));
+        }
     }
 
     /**
