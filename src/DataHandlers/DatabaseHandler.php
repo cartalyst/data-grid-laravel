@@ -97,7 +97,7 @@ class DatabaseHandler extends BaseHandler
             ! $data instanceof HasMany and
             ! $data instanceof BelongsToMany
         ) {
-            throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a databse query.');
+            throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
         }
 
         return $data;
@@ -119,7 +119,9 @@ class DatabaseHandler extends BaseHandler
      */
     protected function prepareCount()
     {
-        if (empty($this->data->getQuery()->groups)) {
+        if ($this->data instanceof EloquentQueryBuilder && empty($this->data->getQuery()->groups)
+            || $this->data instanceof QueryBuilder && empty($this->data->groups)
+        ) {
             return $this->data->count();
         }
 
@@ -334,7 +336,7 @@ class DatabaseHandler extends BaseHandler
     {
         $data = $this->data;
 
-        if ($data instanceof HasMany or $data instanceof BelongsToMany) {
+        if ($data instanceof HasMany || $data instanceof BelongsToMany) {
             $data = $data->getQuery();
         }
 
@@ -347,7 +349,7 @@ class DatabaseHandler extends BaseHandler
         if (empty($requestedSort) && $this->settings->has('sort')) {
             $sorts = [$this->settings->get('sort')];
         } else {
-            $sorts = $requestedSort;
+            $sorts = $requestedSort ?: [];
         }
 
         $applied = [];

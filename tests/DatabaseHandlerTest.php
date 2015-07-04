@@ -18,7 +18,7 @@
  * @link       http://cartalyst.com
  */
 
-namespace Cartalyst\DataGrid\Tests;
+namespace Cartalyst\DataGrid\Laravel\Tests;
 
 use stdClass;
 use Mockery as m;
@@ -26,7 +26,7 @@ use PHPUnit_Framework_TestCase;
 use Cartalyst\Attributes\EntityTrait;
 use Cartalyst\Attributes\EntityInterface;
 use Illuminate\Database\Eloquent\Model as Eloquent;
-use Cartalyst\DataGrid\DataHandlers\DatabaseHandler as Handler;
+use Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler as Handler;
 
 class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 {
@@ -42,7 +42,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testInstanceOfEloquentModel()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridModel());
+        $handler = new Handler($this->getMockModel(), $this->getSettings());
 
         $handler->getData()->shouldReceive('get');
 
@@ -51,7 +51,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testInstanceOfQueryEloquentBuilder()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $handler->getData()->shouldReceive('get');
 
@@ -63,75 +63,83 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
      */
     public function testInstanceOfInvalidObject()
     {
-        $dataGrid = m::mock('Cartalyst\DataGrid\DataGrid');
-
-        $dataGrid->shouldReceive('getData')->andReturn(m::mock('InvalidObject'));
-
-        $handler = new Handler($dataGrid);
+        $data = m::mock('InvalidObject');
+        new Handler($data, $this->getSettings());
     }
 
     public function testPreparingSelect()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $data = $this->getMockEloquentBuilder();
+        $handler = new Handler($data, $this->getSettings());
 
-        $dataGrid->getData()->shouldReceive('addSelect')->with(array(
+        $handler->getData()->shouldReceive('addSelect')->with([
             'foo',
             'bar.baz as qux',
-        ))->once();
+        ])->once();
 
         $handler->prepareSelect();
     }
 
     public function testPreparingCount()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $data = $this->getMockEloquentBuilder();
+        $handler = new Handler($data, $this->getSettings());
 
-        $dataGrid->getData()->shouldReceive('addSelect')->with(array(
+        $query = $handler->getData();
+        $query->shouldReceive('addSelect')->with([
             'foo',
             'bar.baz as qux',
-        ))->once();
+        ])->once();
 
-        $handler->getData()->shouldReceive('get')->once();
-        $handler->getData()->shouldReceive('count')->once()->andReturn(6);
+        $query->shouldReceive('get')->once();
+        $query->shouldReceive('count')->once()->andReturn(6);
 
         $handler->prepareSelect();
         $handler->hydrate();
         $handler->prepareTotalCount();
 
-        $this->assertEquals($handler->getTotalCount(), 6);
+        $this->assertEquals($handler->getParams()->get('total'), 6);
     }
 
     public function testGettingSimpleFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]);
+
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getFilters')->once()->andReturn([
+                    ['foo' => 'Filter 1'],
+                    ['qux' => 'Filter 2'],
+                    'Filter 3',
+                ]
+            );
+
+        $handler->setRequest($provider);
+
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
-                array('foo' => 'Filter 1'),
-                array('qux' => 'Filter 2'),
-                'Filter 3',
-            )
-        );
 
-        $expectedColumn = array(
-            array(
+        $expectedColumn = [
+            [
                 'foo',
                 'like',
                 'Filter 1',
-            ),
-            array(
+            ],
+            [
                 'bar.baz',
                 'like',
                 'Filter 2',
-            ),
-        );
-        $expectedGlobal = array(
-            array(
+            ],
+        ];
+        $expectedGlobal = [
+            [
                 'like',
                 'Filter 3',
-            ),
-        );
+            ],
+        ];
 
         $actual = $handler->getFilters();
         $this->assertCount(2, $actual);
@@ -143,35 +151,42 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGettingNullFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]);
+
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getFilters')->once()->andReturn([
+                    ['foo' => 'null'],
+                    ['qux' => 'Filter 2'],
+                    'Filter 3',
+                ]
+            );
+
+        $handler->setRequest($provider);
+
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
-                array('foo' => 'null'),
-                array('qux' => 'Filter 2'),
-                'Filter 3',
-            )
-        );
-
-        $expectedColumn = array(
-            array(
+        $expectedColumn = [
+            [
                 'foo',
                 'like',
                 'null',
-            ),
-            array(
+            ],
+            [
                 'bar.baz',
                 'like',
                 'Filter 2',
-            ),
-        );
-        $expectedGlobal = array(
-            array(
+            ],
+        ];
+        $expectedGlobal = [
+            [
                 'like',
                 'Filter 3',
-            ),
-        );
+            ],
+        ];
 
         $actual = $handler->getFilters();
         $this->assertCount(2, $actual);
@@ -183,33 +198,40 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGettingComplexFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]);
+
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getFilters')->once()->andReturn([
+                ['foo' => '/^\d{1,5}.*?$/'],
+                ['qux' => '|>=5|'],
+                ['qux' => '|<=8|'],
+            ]);
+
+        $handler->setRequest($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(true);
 
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
-            array('foo' => '/^\d{1,5}.*?$/'),
-            array('qux' => '|>=5|<=8|'),
-        ));
-
-        $expected = array(
-            array(
+        $expected = [
+            [
                 'foo',
                 'regex',
                 '^\d{1,5}.*?$',
-            ),
-            array(
+            ],
+            [
                 'bar.baz',
                 '>=',
                 '5',
-            ),
-            array(
+            ],
+            [
                 'bar.baz',
                 '<=',
                 '8',
-            ),
-        );
+            ],
+        ];
         $actual = $handler->getFilters();
         $this->assertCount(2, $actual);
         list($actual,) = $actual;
@@ -219,54 +241,65 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpColumnFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]);
+
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getFilters')->once()->andReturn([
+                    ['foo' => 'Filter 1'],
+                    ['qux' => 'Filter 2'],
+                    ['baz' => 'null'],
+                    ['bar' => 'not_null'],
+                    'Filter 3',
+                ]
+            );
+
+        $handler->setRequest($provider);
+
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
-                array('foo' => 'Filter 1'),
-                array('qux' => 'Filter 2'),
-                array('baz' => 'null'),
-                array('bar' => 'not_null'),
-                'Filter 3',
-            )
-        );
+        $query = $handler->getData();
 
-        $dataGrid->getData()->shouldReceive('where')->with('foo', 'like', '%Filter 1%')->once();
-        $dataGrid->getData()->shouldReceive('where')->with('bar.baz', 'like', '%Filter 2%')->once();
-        $dataGrid->getData()->shouldReceive('whereNull')->with('baz')->once();
-        $dataGrid->getData()->shouldReceive('whereNotNull')->with('bar')->once();
-        $dataGrid->getData()->shouldReceive('whereNested')->with(m::type('Closure'))->once();
+        $query->shouldReceive('where')->with('foo', 'like', '%Filter 1%')->once();
+        $query->shouldReceive('where')->with('bar.baz', 'like', '%Filter 2%')->once();
+        $query->shouldReceive('whereNull')->with('baz')->once();
+        $query->shouldReceive('whereNotNull')->with('bar')->once();
+        $query->shouldReceive('whereNested')->with(m::type('Closure'))->once();
 
         $handler->prepareFilters();
     }
 
     public function testSettingUpAttributeFilters()
     {
-        $dataGrid = m::mock('Cartalyst\DataGrid\DataGrid');
-        $dataGrid->shouldReceive('getData')->andReturn($model = m::mock('Cartalyst\DataGrid\Tests\Foo'));
+        $model = m::mock('Cartalyst\DataGrid\Laravel\Tests\Foo');
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+
         $model->shouldReceive('availableAttributes')->once()->andReturn($collection = m::mock('Illuminate\Support\Collection'));
-        $collection->shouldReceive('lists')->once()->andReturn(array());
-        $model->shouldReceive('attributesToArray')->once()->andReturn(array());
+        $collection->shouldReceive('lists')->once()->andReturn([]);
+
+        $model->shouldReceive('attributesToArray')->once()->andReturn([]);
         $model->shouldReceive('newQuery')->once()->andReturn($builder = m::mock('Illuminate\Database\Eloquent\Builder'));
-        $dataGrid->shouldReceive('getEnvironment')->andReturn($environment = m::mock('Cartalyst\DataGrid\Environment'));
-        $environment->shouldReceive('getRequestProvider')->andReturn(m::mock('Cartalyst\DataGrid\RequestProviders\ProviderInterface'));
-        $dataGrid->shouldReceive('getColumns')->andReturn(array(
-            'foo',
-            'bar.baz' => 'qux',
-        ));
 
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]', array($dataGrid));
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$model, $this->getSettings()]);
+
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getFilters')->once()->andReturn([
+                    ['foo' => 'Filter 1'],
+                    ['qux' => 'Filter 2'],
+                    ['baz' => 'null'],
+                    ['bar' => 'not_null'],
+                    'Filter 3',
+                ]
+            );
+
+        $handler->setRequest($provider);
+
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
-
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
-                array('foo' => 'Filter 1'),
-                array('qux' => 'Filter 2'),
-                array('baz' => 'null'),
-                array('bar' => 'not_null'),
-                'Filter 3',
-            )
-        );
 
         $builder->shouldReceive('where')->with('foo', 'like', '%Filter 1%')->once();
         $builder->shouldReceive('where')->with('bar.baz', 'like', '%Filter 2%')->once();
@@ -279,7 +312,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGlobalFilterOnQuery()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $data = $this->getMockEloquentBuilder();
+        $handler = new Handler($data, $this->getSettings());
 
         $query = m::mock('Illuminate\Database\Query\Builder');
         $query->shouldReceive('orWhere')->with('foo', 'like', '%Global Filter%')->once();
@@ -290,41 +324,59 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testOperatorFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]);
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getFilters')->once()->andReturn([
+                    ['foo' => '|>=5|'],
+                    ['foo' => '|<=20|'],
+                    ['foo' => '|<>10|'],
+                    ['foo' => '|!=11|'],
+                    ['qux' => '|>3|'],
+                    ['qux' => '|<5|'],
+                ]
+            );
+
+        $handler->setRequest($provider);
+
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
-                array('foo' => '|>=5|<=20|<>10|!=11|'),
-                array('qux' => '|>3|<5|'),
-            )
-        );
+        $query = $handler->getData();
 
-        $dataGrid->getData()->shouldReceive('where')->with('foo', '>=', '5')->once();
-        $dataGrid->getData()->shouldReceive('where')->with('foo', '<=', '20')->once();
-        $dataGrid->getData()->shouldReceive('where')->with('foo', '<>', '10')->once();
-        $dataGrid->getData()->shouldReceive('where')->with('foo', '!=', '11')->once();
-        $dataGrid->getData()->shouldReceive('where')->with('bar.baz', '>', '3')->once();
-        $dataGrid->getData()->shouldReceive('where')->with('bar.baz', '<', '5')->once();
+        $query->shouldReceive('where')->with('foo', '>=', '5')->once();
+        $query->shouldReceive('where')->with('foo', '<=', '20')->once();
+        $query->shouldReceive('where')->with('foo', '<>', '10')->once();
+        $query->shouldReceive('where')->with('foo', '!=', '11')->once();
+        $query->shouldReceive('where')->with('bar.baz', '>', '3')->once();
+        $query->shouldReceive('where')->with('bar.baz', '<', '5')->once();
 
         $handler->prepareFilters();
     }
 
     public function testNestedFilters()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]);
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getFilters')->once()->andReturn([
+                    ['baz..name' => 'foo'],
+                ]
+            );
+
+        $handler->setRequest($provider);
+
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
-                array('baz..name' => 'foo'),
-            )
-        );
-
-        $expected = array(
-            array('foo' => 'bar', 'baz' => array('name' => 'foo')),
-            array('corge' => 'fred', 'baz' => array('name' => 'bar')),
-        );
+        $expected = [
+            ['foo' => 'bar', 'baz' => ['name' => 'foo']],
+            ['corge' => 'fred', 'baz' => ['name' => 'bar']],
+        ];
 
         $handler->getData()->shouldReceive('whereHas')->once();
         $handler->getData()->shouldReceive('get')->andReturn($expected[0]);
@@ -334,33 +386,51 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testRegexFilters()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getFilters')->once()->andReturn(array(
-            array('foo' => '/^B.*?\sCorlett$/'),
-        ));
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = new Handler($data, $this->getSettings());
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getFilters')->once()->andReturn([
+                    ['foo' => '/^B.*?\sCorlett$/'],
+                ]
+            );
 
-        $dataGrid->getData()->shouldReceive('whereRaw')->with('foo regex ?', array('^B.*?\sCorlett$'))->once();
+        $handler->setRequest($provider);
 
-        $dataGrid->getData()->shouldReceive('getQuery')->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
-        $query->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
+        $handler->getData()->shouldReceive('whereRaw')->with('foo regex ?', ['^B.*?\sCorlett$'])->once();
+        $handler->getData()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
         $handler->prepareFilters();
     }
 
     public function testFilteredCount()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = new Handler($data, $this->getSettings());
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle');
 
-        $dataGrid->getData()->shouldReceive('count')->once()->andReturn(5);
+        $handler->setRequest($provider);
 
+        $handler->getData()->shouldReceive('count')->once()->andReturn(5);
+
+        $handler->prepareTotalCount();
         $handler->prepareFilteredCount();
-        $this->assertEquals(5, $handler->getFilteredCount());
+        $this->assertEquals(5, $handler->getParams()->get('filtered'));
     }
 
     public function testSortingWhenNoOrdersArePresent()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getSort')->once();
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = new Handler($data, $this->getSettings());
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getSort')->once();
+
+        $handler->setRequest($provider);
 
         $handler->prepareSort();
     }
@@ -370,51 +440,38 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
      */
     public function testSortingInvalidColumn()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getSort')->once()->andReturn('foobar');
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = new Handler($data, $this->getSettings());
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getSort')->once()->andReturn([['column' => 'foobar']]);
+
+        $handler->setRequest($provider);
 
         $handler->prepareSort();
-    }
-
-    public function testSortingWhenOrdersAreAlreadyPresent()
-    {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getSort')->once()->andReturn('qux');
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getDirection')->once()->andReturn('desc');
-        $dataGrid->getData()->shouldReceive('getQuery')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
-
-        $query->orders = array(
-            array(
-                'column' => 'corge',
-                'direction' => 'asc',
-            ),
-        );
-
-        $handler->prepareSort();
-
-        // Validate the orders are correct
-        $this->assertCount(2, $query->orders);
-        $this->assertEquals('bar.baz', $query->orders[0]['column']);
-        $this->assertEquals('desc', $query->orders[0]['direction']);
-        $this->assertEquals('corge', $query->orders[1]['column']);
-        $this->assertEquals('asc', $query->orders[1]['direction']);
     }
 
     public function testSortingByNestedResources3()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $data = $this->getMockEloquentBuilder();
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = new Handler($data, $this->getSettings());
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getSort')->once()->andReturn([['column' => 'foo', 'direction' => 'asc']]);
 
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getSort')->once()->andReturn('foo');
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getDirection')->once()->andReturn('asc');
-        $dataGrid->getData()->shouldReceive('getQuery')->once()->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+        $handler->setRequest($provider);
+
+        $query = $handler->getData();
+
+        $expected = new \Illuminate\Database\Eloquent\Collection([
+            new \Illuminate\Database\Eloquent\Collection(['foo' => 'bar', 'baz' => ['name' => 'foo']]),
+            new \Illuminate\Database\Eloquent\Collection(['corge' => 'fred', 'baz' => ['name' => 'bar']]),
+        ]);
+
         $query->shouldReceive('orderBy')->once();
-
-        $expected = new \Illuminate\Database\Eloquent\Collection(array(
-            new \Illuminate\Database\Eloquent\Collection(array('foo' => 'bar', 'baz' => array('name' => 'foo'))),
-            new \Illuminate\Database\Eloquent\Collection(array('corge' => 'fred', 'baz' => array('name' => 'bar'))),
-        ));
-
-        $handler->getData()->shouldReceive('get')->andReturn($expected);
+        $query->shouldReceive('get')->andReturn($expected);
 
         $query->orders = 'foo';
 
@@ -424,35 +481,41 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $results = $handler->getResults();
 
         // Validate the orders are correct
-        $this->assertEquals($expected[0]->toArray(), $results[0]);
-        $this->assertEquals($expected[1]->toArray(), $results[1]);
+        $this->assertEquals($expected[0], $results[0]);
+        $this->assertEquals($expected[1], $results[1]);
     }
 
     public function testTransform()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $data = $this->getMockEloquentBuilder();
+        $settings = $this->getSettings();
+        $settings['transformer'] = function ($coll) {
+            foreach($coll as $el) {
+                $el->put('foo', 'foobar');
+            }
 
-        $expected = new \Illuminate\Database\Eloquent\Collection(array(
-            new \Illuminate\Database\Eloquent\Collection(array('foo' => 'bar', 'baz' => array('name' => 'foo'))),
-            new \Illuminate\Database\Eloquent\Collection(array('foo' => 'fred', 'baz' => array('name' => 'bar'))),
-        ));
+            return $coll->toArray();
+        };
 
-        $validated = array(
-            array('foo' => 'foobar', 'baz' => array('name' => 'foo')),
-            array('foo' => 'foobar', 'baz' => array('name' => 'bar')),
-        );
+        $handler = new Handler($data, $settings);
 
-        $handler->getData()->shouldReceive('get')->andReturn($expected);
+        $query = $handler->getData();
 
-        $handler->setTransformer(function ($el) {
-            $el->put('foo', 'foobar');
+        $expected = new \Illuminate\Database\Eloquent\Collection([
+            new \Illuminate\Database\Eloquent\Collection(['foo' => 'bar', 'baz' => ['name' => 'foo']]),
+            new \Illuminate\Database\Eloquent\Collection(['foo' => 'fred', 'baz' => ['name' => 'bar']]),
+        ]);
 
-            return $el;
-        });
+        $validated = [
+            ['foo' => 'foobar', 'baz' => ['name' => 'foo']],
+            ['foo' => 'foobar', 'baz' => ['name' => 'bar']],
+        ];
+
+        $query->shouldReceive('get')->andReturn($expected);
 
         $handler->hydrate();
 
-        $results = $handler->getResults();
+        $results = $handler->toArray();
 
         // Validate the orders are correct
         $this->assertEquals($validated[0], $results[0]);
@@ -461,9 +524,17 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSortingHasMany()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridHasMany());
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getSort')->once()->andReturn('qux');
-        $dataGrid->getEnvironment()->getRequestProvider()->shouldReceive('getDirection')->once()->andReturn('desc');
+        $data = m::mock('Illuminate\Database\Eloquent\Relations\HasMany');
+        $data->shouldReceive('getQuery')->once()->andReturn($builder = m::mock('Illuminate\Database\Query\Builder'));
+        $builder->shouldReceive('orderBy')->once();
+
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $handler = new Handler($data, $this->getSettings());
+        $provider->shouldReceive('getThreshold')
+            ->shouldReceive('getThrottle')
+            ->shouldReceive('getSort')->once()->andReturn([['column' => 'qux', 'direction' => 'desc']]);
+
+        $handler->setRequest($provider);
 
         $handler->prepareSort();
     }
@@ -473,14 +544,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
      */
     public function testCalculatingPaginationThrowsExceptionIfRequestedPagesIsZero()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $handler->calculatePagination(10, 'single', 0, 0);
     }
 
     public function testCalculatingPagination1()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $result = $handler->calculatePagination(100, 'group', 100, 10);
         $this->assertCount(2, $result);
@@ -491,7 +562,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testCalculatingPagination2()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $result = $handler->calculatePagination(90, 'group', 100, 10);
         list($totalPages, $perPage) = $result;
@@ -501,7 +572,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testCalculatingPagination3()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $result = $handler->calculatePagination(120, 'group', 100, 10);
         list($totalPages, $perPage) = $result;
@@ -511,7 +582,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testCalculatingPagination4()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $result = $handler->calculatePagination(1200, 'single', 100, 100);
         list($totalPages, $perPage) = $result;
@@ -521,7 +592,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testCalculatingPagination5()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $result = $handler->calculatePagination(12000, 'single', 100, 100);
         list($totalPages, $perPage) = $result;
@@ -531,7 +602,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testCalculatingPagination6()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $result = $handler->calculatePagination(170, 'group', 100, 10);
         list($totalPages, $perPage) = $result;
@@ -541,7 +612,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testCalculatingPagination7()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $result = $handler->calculatePagination(171, 'group', 100, 10);
         list($totalPages, $perPage) = $result;
@@ -551,104 +622,117 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpPaginationLeavesDefaultParametersIfNoFilteredResultsArePresent()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
+
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
+            [$this->getMockEloquentBuilder(), $this->getSettings()]);
 
         $handler->preparePagination();
     }
 
     public function testSettingUpPaginationWithOnePage()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
-        $handler->setFilteredCount(10);
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
+            [$this->getMockEloquentBuilder(), $this->getSettings()]);
 
-        $request = $dataGrid->getEnvironment()->getRequestProvider();
-        $request->shouldReceive('getPage')->once()->andReturn(1);
-        $request->shouldReceive('getMethod')->once()->andReturn('group');
-        $request->shouldReceive('getThreshold')->once()->andReturn(100);
-        $request->shouldReceive('getThrottle')->once()->andReturn(100);
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
-        $handler->shouldReceive('calculatePagination')->with(10, 'group', 100, 100)->once()->andReturn(array(1, 10));
+        $provider->shouldReceive('getThreshold')->andReturn(100)
+            ->shouldReceive('getThrottle')->andReturn(100)
+            ->shouldReceive('getMethod')->once()->andReturn('group')
+            ->shouldReceive('getPage')->once()->andReturn(1);
 
-        $dataGrid->getData()->shouldReceive('forPage')->with(1, 10)->once();
+        $handler->setRequest($provider);
+
+        $handler->getParams()->set('filtered', 10);
+
+        $handler->shouldReceive('calculatePagination')->with(10, 'group', 100, 100)->once()->andReturn([1, 10]);
+
+        $handler->getData()->shouldReceive('forPage')->with(1, 10)->once();
 
         $handler->preparePagination();
 
-        $this->assertNull($handler->getPreviousPage());
-        $this->assertNull($handler->getNextPage());
-        $this->assertSame(1, $handler->getPagesCount());
+        $this->assertNull($handler->getParams()->get('previous_page'));
+        $this->assertNull($handler->getParams()->get('next_page'));
+        $this->assertSame(1, $handler->getParams()->get('pages'));
     }
 
     public function testSettingUpPaginationOnPage2Of3()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
-        $handler->setFilteredCount(30);
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
+            [$this->getMockEloquentBuilder(), $this->getSettings()]);
 
-        $request = $dataGrid->getEnvironment()->getRequestProvider();
-        $request->shouldReceive('getPage')->once()->andReturn(2);
-        $request->shouldReceive('getMethod')->once()->andReturn('group');
-        $request->shouldReceive('getThreshold')->once()->andReturn(100);
-        $request->shouldReceive('getThrottle')->once()->andReturn(100);
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
-        $handler->shouldReceive('calculatePagination')->with(30, 'group', 100, 100)->once()->andReturn(array(3, 10));
+        $provider->shouldReceive('getThreshold')->andReturn(100)
+            ->shouldReceive('getThrottle')->andReturn(100)
+            ->shouldReceive('getMethod')->once()->andReturn('group')
+            ->shouldReceive('getPage')->once()->andReturn(2);
 
-        $dataGrid->getData()->shouldReceive('forPage')->with(2, 10)->once();
+        $handler->setRequest($provider);
+
+        $handler->getParams()->set('filtered', 30);
+
+        $handler->shouldReceive('calculatePagination')->with(30, 'group', 100, 100)->once()->andReturn([3, 10]);
+
+        $handler->getData()->shouldReceive('forPage')->with(2, 10)->once();
 
         $handler->preparePagination();
 
-        $this->assertSame(1, $handler->getPreviousPage());
-        $this->assertSame(3, $handler->getNextPage());
-        $this->assertSame(3, $handler->getPagesCount());
+        $this->assertSame(1, $handler->getParams()->get('previous_page'));
+        $this->assertSame(3, $handler->getParams()->get('next_page'));
+        $this->assertSame(3, $handler->getParams()->get('pages'));
     }
 
     public function testSettingUpPaginationOnPage3Of3()
     {
-        $handler = m::mock('Cartalyst\DataGrid\DataHandlers\DatabaseHandler[calculatePagination]',
-            array($dataGrid = $this->getMockDataGridBuilder()));
-        $handler->setFilteredCount(30);
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
+            [$this->getMockEloquentBuilder(), $this->getSettings()]);
 
-        $request = $dataGrid->getEnvironment()->getRequestProvider();
-        $request->shouldReceive('getPage')->once()->andReturn(3);
-        $request->shouldReceive('getMethod')->once()->andReturn('group');
-        $request->shouldReceive('getThreshold')->once()->andReturn(100);
-        $request->shouldReceive('getThrottle')->once()->andReturn(100);
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
-        $handler->shouldReceive('calculatePagination')->with(30, 'group', 100, 100)->once()->andReturn(array(3, 10));
+        $provider->shouldReceive('getThreshold')->andReturn(100)
+            ->shouldReceive('getThrottle')->andReturn(100)
+            ->shouldReceive('getMethod')->once()->andReturn('group')
+            ->shouldReceive('getPage')->once()->andReturn(3);
 
-        $dataGrid->getData()->shouldReceive('forPage')->with(3, 10)->once();
+        $handler->setRequest($provider);
+
+        $handler->getParams()->set('filtered', 30);
+
+        $handler->shouldReceive('calculatePagination')->with(30, 'group', 100, 100)->once()->andReturn([3, 10]);
+
+        $handler->getData()->shouldReceive('forPage')->with(3, 10)->once();
 
         $handler->preparePagination();
 
-        $this->assertSame(2, $handler->getPreviousPage());
-        $this->assertNull($handler->getNextPage());
-        $this->assertSame(3, $handler->getPagesCount());
+        $this->assertSame(2, $handler->getParams()->get('previous_page'));
+        $this->assertNull($handler->getParams()->get('next_page'));
+        $this->assertSame(3, $handler->getParams()->get('pages'));
     }
 
     public function testHydrating()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $results = array(
+        $results = [
             $result1 = new stdClass,
             $result2 = new stdClass,
-        );
+        ];
 
         $result1->foo = 'bar';
         $result1->baz = 'qux';
         $result2->corge = 'fred';
 
-        $dataGrid->getData()->shouldReceive('get')->andReturn($results);
+        $handler->getData()->shouldReceive('get')->andReturn($results);
 
         $handler->hydrate();
 
-        $expected = array(
-            array('foo' => 'bar', 'baz' => 'qux'),
-            array('corge' => 'fred'),
-        );
+        $expected = [
+            ['foo' => 'bar', 'baz' => 'qux'],
+            ['corge' => 'fred'],
+        ];
 
-        $this->assertCount(count($expected), $results = $handler->getResults());
+        $this->assertCount(count($expected), $results = $handler->toArray());
         $this->assertEquals($expected, $results);
 
         foreach ($results as $index => $result) {
@@ -659,100 +743,82 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testHydratingMaxResults()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $results = array(
+        $results = [
             $result1 = new stdClass,
-        );
+        ];
 
         $result1->foo = 'bar';
         $result1->baz = 'qux';
 
-        $dataGrid->getData()->shouldReceive('get')->andReturn($results);
-        $dataGrid->getData()->shouldReceive('limit')->once()->with(1);
+        $handler->getData()->shouldReceive('get')->andReturn($results);
+        $handler->getData()->shouldReceive('limit')->once()->with(1);
 
         $handler->hydrate(1);
 
-        $expected = array(
-            array('foo' => 'bar', 'baz' => 'qux'),
-        );
+        $expected = [
+            ['foo' => 'bar', 'baz' => 'qux'],
+        ];
 
-        $this->assertCount(count($expected), $results = $handler->getResults());
+        $this->assertCount(count($expected), $results = $handler->toArray());
         $this->assertEquals($expected, $results);
     }
 
     public function testHydrating1()
     {
-        $handler = new Handler($dataGrid = $this->getMockDataGridBuilder());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $expected = new \Illuminate\Database\Eloquent\Collection(array(
-            new \Illuminate\Database\Eloquent\Collection(array(
+        $expected = new \Illuminate\Database\Eloquent\Collection([
+            new \Illuminate\Database\Eloquent\Collection([
                 'foo' => 'bar',
-                'baz' => new \Illuminate\Database\Eloquent\Collection(array('name' => 'foo'))
-            )),
-            new \Illuminate\Database\Eloquent\Collection(array(
+                'baz' => new \Illuminate\Database\Eloquent\Collection(['name' => 'foo'])
+            ]),
+            new \Illuminate\Database\Eloquent\Collection([
                 'corge' => 'fred',
-                'baz' => new \Illuminate\Database\Eloquent\Collection(array('name' => 'bar'))
-            )),
-        ));
+                'baz' => new \Illuminate\Database\Eloquent\Collection(['name' => 'bar'])
+            ]),
+        ]);
 
         $handler->getData()->shouldReceive('get')->andReturn($expected);
 
         $handler->hydrate();
 
-        $results = $handler->getResults();
+        $results = $handler->toArray();
 
         // Validate the orders are correct
         $this->assertEquals($expected[0]->toArray(), $results[0]);
         $this->assertEquals($expected[1]->toArray(), $results[1]);
     }
 
-    protected function getMockDataGridBuilder()
+    protected function getMockEloquentBuilder()
     {
-        $dataGrid = m::mock('Cartalyst\DataGrid\DataGrid');
-        $dataGrid->shouldReceive('getData')->andReturn($builder = m::mock('Illuminate\Database\Eloquent\Builder'));
+        $builder = m::mock('Illuminate\Database\Eloquent\Builder');
         $builder->shouldReceive('getModel')->once()->andReturn($model = m::mock('Illuminate\Database\Eloquent\Model'));
-        $model->shouldReceive('attributesToArray')->once()->andReturn(array());
-        $dataGrid->shouldReceive('getEnvironment')->andReturn($environment = m::mock('Cartalyst\DataGrid\Environment'));
-        $environment->shouldReceive('getRequestProvider')->andReturn(m::mock('Cartalyst\DataGrid\RequestProviders\ProviderInterface'));
-        $dataGrid->shouldReceive('getColumns')->andReturn(array(
-            'foo',
-            'bar.baz' => 'qux',
-        ));
+        $builder->shouldReceive('getQuery')->once()->andReturn(m::mock('Illuminate\Database\Query\Builder'));
 
-        return $dataGrid;
+        $model->shouldReceive('attributesToArray')->once()->andReturn([]);
+
+        return $builder;
     }
 
-    protected function getMockDataGridModel()
+    protected function getMockModel()
     {
-        $dataGrid = m::mock('Cartalyst\DataGrid\DataGrid');
-        $dataGrid->shouldReceive('getData')->andReturn($model = m::mock('Illuminate\Database\Eloquent\Model'));
-        $model->shouldReceive('attributesToArray')->once()->andReturn(array());
+        $model = m::mock('Illuminate\Database\Eloquent\Model');
+        $model->shouldReceive('attributesToArray')->once()->andReturn([]);
         $model->shouldReceive('newQuery')->once()->andReturn(m::mock('Illuminate\Database\Query\Builder'));
-        $dataGrid->shouldReceive('getEnvironment')->andReturn($environment = m::mock('Cartalyst\DataGrid\Environment'));
-        $environment->shouldReceive('getRequestProvider')->andReturn(m::mock('Cartalyst\DataGrid\RequestProviders\ProviderInterface'));
-        $dataGrid->shouldReceive('getColumns')->andReturn(array(
-            'foo',
-            'bar.baz' => 'qux',
-        ));
 
-        return $dataGrid;
+        return $model;
     }
 
-    protected function getMockDataGridHasMany()
+    protected function getSettings()
     {
-        $dataGrid = m::mock('Cartalyst\DataGrid\DataGrid');
-        $dataGrid->shouldReceive('getData')->andReturn($data = m::mock('Illuminate\Database\Eloquent\Relations\HasMany'));
-        $data->shouldReceive('getQuery')->once()->andReturn($builder = m::mock('Illuminate\Database\Query\Builder'));
-        $builder->shouldReceive('orderBy')->once();
-        $dataGrid->shouldReceive('getEnvironment')->andReturn($environment = m::mock('Cartalyst\DataGrid\Environment'));
-        $environment->shouldReceive('getRequestProvider')->andReturn(m::mock('Cartalyst\DataGrid\RequestProviders\ProviderInterface'));
-        $dataGrid->shouldReceive('getColumns')->andReturn(array(
-            'foo',
-            'bar.baz' => 'qux',
-        ));
-
-        return $dataGrid;
+        return [
+            'columns' => [
+                'foo',
+                'bar.baz' => 'qux',
+            ]
+        ];
     }
 }
 
