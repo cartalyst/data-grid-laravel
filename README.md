@@ -1,6 +1,6 @@
 # Data Grid
 
-[![Build Status](http://ci.cartalyst.com/build-status/svg/7)](http://ci.cartalyst.com/build-status/view/7)
+[![Build Status](http://ci.cartalyst.com/build-status/svg/50)](http://ci.cartalyst.com/build-status/view/50)
 
 A framework agnostic data grid package that makes it easy to filter large data sources. It shifts the focus from pagination to data filtration. Pass any data source through a data handler and the package will take care of the rest so you can use the filtered result set to create your applications.
 
