@@ -1,6 +1,6 @@
 # Data Grid
 
-[![Build Status](http://ci.cartalyst.com/build-status/svg/50)](http://ci.cartalyst.com/build-status/view/50)
+[![Build Status](https://magnum.travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=master)](https://magnum.travis-ci.com/cartalyst/data-grid-laravel)
 
 A framework agnostic data grid package that makes it easy to filter large data sources. It shifts the focus from pagination to data filtration. Pass any data source through a data handler and the package will take care of the rest so you can use the filtered result set to create your applications.
 
