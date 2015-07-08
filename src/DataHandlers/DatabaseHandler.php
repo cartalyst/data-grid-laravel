@@ -162,6 +162,7 @@ class DatabaseHandler extends BaseHandler
         list($columnFilters, $globalFilters) = $this->getFilters();
 
         foreach ($columnFilters as $filter) {
+
             list($column, $operator, $value) = $filter;
             $applied[] = [
                 'column' => $column,
@@ -169,19 +170,32 @@ class DatabaseHandler extends BaseHandler
                 'value' => $value,
             ];
 
-            $this->applyFilter($this->data, $column, $operator, $value);
+            if (array_key_exists($column, $this->settings->get('filters'))
+                && is_callable($callable = $this->settings->get('filters')[$column])
+            ) {
+                // Apply custom sort logic
+                call_user_func($callable, $this->data, $column, $operator, $value);
+            } else {
+                $this->applyFilter($this->data, $column, $operator, $value);
+            }
         }
 
         foreach ($globalFilters as $filter) {
+
             list($operator, $value) = $filter;
             $applied[] = [
                 'operator' => $operator,
                 'value' => $value,
             ];
 
-            $this->data->whereNested(function ($data) use ($me, $operator, $value) {
-                $me->globalFilter($data, $operator, $value);
-            });
+            if (is_callable($callable = $this->settings->get('global'))) {
+                // Apply custom sort logic
+                call_user_func($callable, $this->data, $operator, $value);
+            } else {
+                $this->data->whereNested(function ($data) use ($me, $operator, $value) {
+                    $me->globalFilter($data, $operator, $value);
+                });
+            }
         }
 
         $this->params->set('filters', $applied);
@@ -303,17 +317,12 @@ class DatabaseHandler extends BaseHandler
      */
     public function globalFilter(QueryBuilder $nestedQuery, $operator, $value)
     {
-        if (is_callable($this->settings->get('global'))) {
-            // Apply custom sort logic
-            call_user_func($this->settings->get('global'), $nestedQuery, $operator, $value);
-        } else {
-            foreach ($this->settings->get('columns') as $key => $_value) {
-                if (is_numeric($key)) {
-                    $key = $_value;
-                }
-
-                $this->applyFilter($nestedQuery, $key, $operator, $value, 'or');
+        foreach ($this->settings->get('columns') as $key => $_value) {
+            if (is_numeric($key)) {
+                $key = $_value;
             }
+
+            $this->applyFilter($nestedQuery, $key, $operator, $value, 'or');
         }
     }
 
