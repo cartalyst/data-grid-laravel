@@ -374,11 +374,11 @@ class DatabaseHandler extends BaseHandler
                 continue;
             }
 
-            if (array_key_exists($column,
-                    $this->settings->get('sorts')) && is_callable($this->settings->get('sorts')[$column])
+            if (array_key_exists($column, $this->settings->get('sorts'))
+                && is_callable($callable = $this->settings->get('sorts')[$column])
             ) {
                 // Apply custom sort logic
-                call_user_func_array($this->settings->get('sorts')[$column], $data, $column, $direction);
+                call_user_func_array($callable, $data, $direction);
             } else {
                 $data->orderBy($column, $direction);
             }
