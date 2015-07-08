@@ -174,7 +174,7 @@ class DatabaseHandler extends BaseHandler
                 && is_callable($callable = $this->settings->get('filters')[$column])
             ) {
                 // Apply custom sort logic
-                call_user_func($callable, $this->data, $column, $operator, $value);
+                call_user_func($callable, $this->data, $operator, $value);
             } else {
                 $this->applyFilter($this->data, $column, $operator, $value);
             }
