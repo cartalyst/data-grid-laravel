@@ -1,6 +1,6 @@
 {
     "name": "cartalyst/data-grid-laravel",
-    "description": "HTML markup templating on the client side, simple API on the server side. Incredibly simple and easy to use.",
+    "description": "Laravel implementation package for Data Grid",
     "keywords": [
         "php",
         "cartalyst",

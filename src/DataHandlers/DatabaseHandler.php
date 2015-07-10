@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Part of the Data Grid package.
+ * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
  *
@@ -10,8 +10,8 @@
  * This source file is subject to the Cartalyst PSL License that is
  * bundled with this package in the LICENSE file.
  *
- * @package    Data Grid
- * @version    4.0.0
+ * @package    Data Grid Laravel
+ * @version    1.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
  * @copyright  (c) 2011-2015, Cartalyst LLC
@@ -204,11 +204,11 @@ class DatabaseHandler extends BaseHandler
     /**
      * Applies a filter to the given query.
      *
-     * @param  mixed $query
-     * @param  string $column
-     * @param  string $operator
-     * @param  mixed $value
-     * @param  string $method
+     * @param  mixed  $query
+     * @param  string  $column
+     * @param  string  $operator
+     * @param  mixed  $value
+     * @param  string  $method
      * @return void
      */
     protected function applyFilter($query, $column, $operator, $value, $method = 'and')
@@ -229,12 +229,6 @@ class DatabaseHandler extends BaseHandler
                 if ($this->getConnection() instanceof MySqlDatabaseConnection) {
                     $query->{$method}("{$column} {$operator} ?", [$value]);
                 }
-
-                // TODO PostgreSQL regex
-//                else if ($this->getConnection() instanceof PostgresConnection)
-//                {
-//                    $query->{$method}("{$column} {$operator} ?", array($value));
-//                }
 
                 return;
         }
@@ -310,9 +304,9 @@ class DatabaseHandler extends BaseHandler
      * filter is applied in a "or where" fashion, where
      * the value can be matched across any column.
      *
-     * @param  \Illuminate\Database\Query\Builder $nestedQuery
-     * @param  string $operator
-     * @param  string $value
+     * @param  \Illuminate\Database\Query\Builder  $nestedQuery
+     * @param  string  $operator
+     * @param  string  $value
      * @return void
      */
     public function globalFilter(QueryBuilder $nestedQuery, $operator, $value)

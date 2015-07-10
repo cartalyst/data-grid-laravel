@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Part of the Data Grid package.
+ * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
  *
@@ -10,8 +10,8 @@
  * This source file is subject to the Cartalyst PSL License that is
  * bundled with this package in the LICENSE file.
  *
- * @package    Data Grid
- * @version    4.0.0
+ * @package    Data Grid Laravel
+ * @version    1.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
  * @copyright  (c) 2011-2015, Cartalyst LLC
@@ -25,14 +25,6 @@ use Illuminate\Support\ServiceProvider;
 
 class DataGridServiceProvider extends ServiceProvider
 {
-    /**
-     * {@inheritDoc}
-     */
-    public function boot()
-    {
-        $this->configureDomPdf();
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -60,13 +52,12 @@ class DataGridServiceProvider extends ServiceProvider
             $config => config_path('cartalyst.data-grid.php'),
         ], 'config');
 
-        // TODO Publish assets from `cartalyst/data-grid`
         // Publish assets
-//        $assets = realpath(__DIR__ . '/../../public');
+        $assets = realpath(__DIR__ . '/../../../data-grid/public');
 
-//        $this->publishes([
-//            $assets => public_path('assets/cartalyst/data-grid'),
-//        ], 'assets');
+        $this->publishes([
+            $assets => public_path('assets/cartalyst/data-grid'),
+        ], 'assets');
     }
 
     /**
@@ -101,23 +92,5 @@ class DataGridServiceProvider extends ServiceProvider
 
             return new Environment($request);
         });
-    }
-
-    /**
-     * Configure Dom Pdf.
-     *
-     * @return void
-     */
-    protected function configureDomPdf()
-    {
-        $configFile = base_path() . '/vendor/dompdf/dompdf/dompdf_config.inc.php';
-
-        if ($this->app['files']->exists($configFile)) {
-            if (! defined('DOMPDF_ENABLE_AUTOLOAD')) {
-                define('DOMPDF_ENABLE_AUTOLOAD', false);
-            }
-
-            require_once $configFile;
-        }
     }
 }

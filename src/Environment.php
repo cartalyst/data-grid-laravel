@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Part of the Data Grid package.
+ * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
  *
@@ -10,8 +10,8 @@
  * This source file is subject to the Cartalyst PSL License that is
  * bundled with this package in the LICENSE file.
  *
- * @package    Data Grid
- * @version    4.0.0
+ * @package    Data Grid Laravel
+ * @version    1.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
  * @copyright  (c) 2011-2015, Cartalyst LLC
@@ -48,8 +48,8 @@ class Environment
     /**
      * Create a new data grid instance.
      *
-     * @param  \Cartalyst\DataGrid\Contracts\Handler $dataHandler
-     * @param  mixed $requestProvider
+     * @param  \Cartalyst\DataGrid\Contracts\Handler  $dataHandler
+     * @param  mixed  $requestProvider
      * @return \Cartalyst\DataGrid\DataGrid|mixed
      */
     public function make($dataHandler, $requestProvider = null)
