@@ -11,6 +11,9 @@ matrix:
   allow_failures:
     - php: hhvm
 
+before_install:
+  - composer config -g github-oauth.github.com $CI_USER_TOKEN
+
 install:
   - composer install --prefer-source
 
