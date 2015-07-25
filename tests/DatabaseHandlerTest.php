@@ -399,7 +399,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler->setRequest($provider);
 
         $handler->getData()->shouldReceive('whereRaw')->with('foo regex ?', ['^B.*?\sCorlett$'])->once();
-        $handler->getData()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
+        $handler->getData()->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
         $handler->prepareFilters();
     }
@@ -470,7 +470,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             new \Illuminate\Database\Eloquent\Collection(['corge' => 'fred', 'baz' => ['name' => 'bar']]),
         ]);
 
-        $query->shouldReceive('orderBy')->once();
+        $query->getQuery()->shouldReceive('orderBy')->once();
         $query->shouldReceive('get')->andReturn($expected);
 
         $query->orders = 'foo';
@@ -489,12 +489,10 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $data = $this->getMockEloquentBuilder();
         $settings = $this->getSettings();
-        $settings['transformer'] = function ($coll) {
-            foreach($coll as $el) {
-                $el->put('foo', 'foobar');
-            }
+        $settings['transformer'] = function ($el) {
+            $el->foo = 'foobar';
 
-            return $coll->toArray();
+            return $el->toArray();
         };
 
         $handler = new Handler($data, $settings);
@@ -502,13 +500,13 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $query = $handler->getData();
 
         $expected = new \Illuminate\Database\Eloquent\Collection([
-            new \Illuminate\Database\Eloquent\Collection(['foo' => 'bar', 'baz' => ['name' => 'foo']]),
-            new \Illuminate\Database\Eloquent\Collection(['foo' => 'fred', 'baz' => ['name' => 'bar']]),
+            new Bar(['foo' => 'bar', 'baz' => 'foo']),
+            new Bar(['foo' => 'fred', 'baz' => 'bar']),
         ]);
 
         $validated = [
-            ['foo' => 'foobar', 'baz' => ['name' => 'foo']],
-            ['foo' => 'foobar', 'baz' => ['name' => 'bar']],
+            ['foo' => 'foobar', 'baz' => 'foo'],
+            ['foo' => 'foobar', 'baz' => 'bar'],
         ];
 
         $query->shouldReceive('get')->andReturn($expected);
@@ -795,7 +793,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $builder = m::mock('Illuminate\Database\Eloquent\Builder');
         $builder->shouldReceive('getModel')->once()->andReturn($model = m::mock('Illuminate\Database\Eloquent\Model'));
-        $builder->shouldReceive('getQuery')->once()->andReturn(m::mock('Illuminate\Database\Query\Builder'));
+        $builder->shouldReceive('getQuery')->andReturn(m::mock('Illuminate\Database\Query\Builder'));
 
         $model->shouldReceive('attributesToArray')->once()->andReturn([]);
 
@@ -827,4 +825,9 @@ class Foo extends Eloquent implements EntityInterface
 
     use EntityTrait;
 
+}
+
+class Bar extends Eloquent
+{
+    protected $guarded = [];
 }
