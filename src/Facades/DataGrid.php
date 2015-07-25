@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Facade;
 class DataGrid extends Facade
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     protected static function getFacadeAccessor()
     {

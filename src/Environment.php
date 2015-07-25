@@ -20,10 +20,11 @@
 
 namespace Cartalyst\DataGrid\Laravel;
 
-use Cartalyst\DataGrid\Contracts\Provider;
 use Cartalyst\DataGrid\DataGrid;
-use Cartalyst\DataGrid\Providers\RequestProvider;
+use Cartalyst\DataGrid\Contracts\Handler;
+use Cartalyst\DataGrid\Contracts\Provider;
 use Symfony\Component\HttpFoundation\Request;
+use Cartalyst\DataGrid\Providers\RequestProvider;
 
 class Environment
 {
@@ -48,12 +49,12 @@ class Environment
     /**
      * Create a new data grid instance.
      *
-     * @param  \Cartalyst\DataGrid\Contracts\Handler  $dataHandler
+     * @param  \Cartalyst\DataGrid\Contracts\Handler  $handler
      * @param  mixed  $requestProvider
      * @return \Cartalyst\DataGrid\DataGrid|mixed
      */
-    public function make($dataHandler, $requestProvider = null)
+    public function make(Handler $handler, $requestProvider = null)
     {
-        return DataGrid::make($dataHandler, $requestProvider ?: $this->requestProvider);
+        return DataGrid::make($handler, $requestProvider ?: $this->requestProvider);
     }
 }

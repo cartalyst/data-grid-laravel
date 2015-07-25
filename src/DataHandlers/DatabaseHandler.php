@@ -104,7 +104,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function prepareTotalCount()
     {
@@ -129,7 +129,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function prepareSelect()
     {
@@ -152,7 +152,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function prepareFilters()
     {
@@ -268,7 +268,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function supportsRegexFilters()
     {
@@ -321,7 +321,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function prepareFilteredCount()
     {
@@ -333,7 +333,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function prepareSort()
     {
@@ -389,7 +389,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function calculateSortColumn($column = null)
     {
@@ -416,7 +416,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function preparePagination($paginate = true)
     {
@@ -452,7 +452,7 @@ class DatabaseHandler extends BaseHandler
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function hydrate($maxResults = null)
     {

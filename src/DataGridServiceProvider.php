@@ -20,19 +20,20 @@
 
 namespace Cartalyst\DataGrid\Laravel;
 
-use Cartalyst\DataGrid\Providers\RequestProvider;
 use Illuminate\Support\ServiceProvider;
+use Cartalyst\DataGrid\Providers\RequestProvider;
 
 class DataGridServiceProvider extends ServiceProvider
 {
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function register()
     {
         $this->prepareResources();
 
         $this->registerIlluminateRequestProvider();
+
         $this->registerDataGrid();
     }
 
@@ -44,7 +45,7 @@ class DataGridServiceProvider extends ServiceProvider
     protected function prepareResources()
     {
         // Publish config
-        $config = realpath(__DIR__ . '/config/config.php');
+        $config = realpath(__DIR__.'/../resources/config/config.php');
 
         $this->mergeConfigFrom($config, 'cartalyst.data-grid');
 
@@ -53,7 +54,7 @@ class DataGridServiceProvider extends ServiceProvider
         ], 'config');
 
         // Publish assets
-        $assets = realpath(__DIR__ . '/../../../data-grid/public');
+        $assets = realpath(__DIR__.'/../../../data-grid/public');
 
         $this->publishes([
             $assets => public_path('assets/cartalyst/data-grid'),
@@ -67,7 +68,7 @@ class DataGridServiceProvider extends ServiceProvider
      */
     protected function registerIlluminateRequestProvider()
     {
-        $this->app['datagrid.request'] = $this->app->share(function ($app) {
+        $this->app->singleton('datagrid.request', function ($app) {
             $requestProvider = new RequestProvider($app['request']);
 
             $config = $app['config']->get('cartalyst.data-grid');
@@ -87,10 +88,8 @@ class DataGridServiceProvider extends ServiceProvider
      */
     protected function registerDataGrid()
     {
-        $this->app['datagrid'] = $this->app->share(function ($app) {
-            $request = $app['datagrid.request'];
-
-            return new Environment($request);
+        $this->app->singleton('datagrid', function ($app) {
+            return new Environment($app['datagrid.request']);
         });
     }
 }
