@@ -54,7 +54,7 @@ class DataGridServiceProvider extends ServiceProvider
         ], 'config');
 
         // Publish assets
-        $assets = realpath(__DIR__.'/../../../data-grid/public');
+        $assets = realpath(__DIR__.'/../../data-grid/resources/assets');
 
         $this->publishes([
             $assets => public_path('assets/cartalyst/data-grid'),
