@@ -20,12 +20,11 @@
 
 namespace Cartalyst\DataGrid\Laravel\DataHandlers;
 
-use Cartalyst\DataGrid\Contracts\Hydrator;
-use Cartalyst\DataGrid\DataHandlers\BaseHandler;
 use RuntimeException;
 use InvalidArgumentException;
 use Cartalyst\Attributes\Value;
 use Illuminate\Database\Eloquent\Model;
+use Cartalyst\DataGrid\DataHandlers\BaseHandler;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -72,49 +71,24 @@ class DatabaseHandler extends BaseHandler
         // If the data is an instance of an Eloquent model,
         // we'll grab a new query from it.
         if ($data instanceof Model) {
+            $this->extractProperties($data);
 
-            $this->appends = array_keys($data->attributesToArray());
-
-            if (method_exists($data, 'availableAttributes')) {
-                $attributes = $data->availableAttributes()->lists($this->attributesKey);
-
-                if (method_exists($attributes, 'toArray')) {
-                    $this->attributes = $attributes->toArray();
-                } else {
-                    $this->attributes = $attributes;
-                }
-            }
-
-            $data = $data->newQuery();
-
+            return $data->newQuery();
         } elseif ($data instanceof EloquentQueryBuilder) {
+            $this->extractProperties($data->getModel());
 
-            $model = $data->getModel();
-
-            $this->appends = array_keys($model->attributesToArray());
-
-            if (method_exists($model, 'availableAttributes')) {
-                $attributes = $model->availableAttributes()->lists($this->attributesKey);
-
-                if (method_exists($attributes, 'toArray')) {
-                    $this->attributes = $attributes->toArray();
-                } else {
-                    $this->attributes = $attributes;
-                }
-            }
+            return $data;
         }
 
-        // We accept different data types for our data grid,
-        // let's just check now that
-        if (! $data instanceof QueryBuilder and
-            ! $data instanceof EloquentQueryBuilder and
-            ! $data instanceof HasMany and
-            ! $data instanceof BelongsToMany
-        ) {
+        $isHasMany       = $data instanceof HasMany;
+        $isQueryBuilder  = $data instanceof QueryBuilder;
+        $isBelongsToMany = $data instanceof BelongsToMany;
+
+        // Since Data Grid accepts different data types,
+        // we need to check which ones are valid types.
+        if (! $isQueryBuilder && ! $isHasMany && ! $isBelongsToMany) {
             throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
         }
-
-        return $data;
     }
 
     /**
@@ -475,5 +449,20 @@ class DatabaseHandler extends BaseHandler
         }
 
         $this->results = $this->hydrateResults($this->data->get());
+    }
+
+
+
+    protected function extractProperties($data)
+    {
+        $this->appends = array_keys($data->attributesToArray());
+
+        if (method_exists($data, 'availableAttributes')) {
+            $attributes = $data->availableAttributes()->lists($this->attributesKey);
+
+            $arrayable = method_exists($attributes, 'toArray');
+
+            $this->attributes = $arrayable === true ? $attributes->toArray() : $attributes;
+        }
     }
 }
