@@ -72,21 +72,35 @@ class DatabaseHandler extends BaseHandler
         // If the data is an instance of an Eloquent model,
         // we'll grab a new query from it.
         if ($data instanceof Model) {
+
             $this->appends = array_keys($data->attributesToArray());
 
             if (method_exists($data, 'availableAttributes')) {
-                $this->attributes = $data->availableAttributes()->lists($this->attributesKey);
+                $attributes = $data->availableAttributes()->lists($this->attributesKey);
+
+                if (method_exists($attributes, 'toArray')) {
+                    $this->attributes = $attributes->toArray();
+                } else {
+                    $this->attributes = $attributes;
+                }
             }
 
             $data = $data->newQuery();
+
         } elseif ($data instanceof EloquentQueryBuilder) {
+
             $model = $data->getModel();
-            $data = $data->getQuery();
 
             $this->appends = array_keys($model->attributesToArray());
 
             if (method_exists($model, 'availableAttributes')) {
-                $this->attributes = $model->availableAttributes()->lists($this->attributesKey);
+                $attributes = $model->availableAttributes()->lists($this->attributesKey);
+
+                if (method_exists($attributes, 'toArray')) {
+                    $this->attributes = $attributes->toArray();
+                } else {
+                    $this->attributes = $attributes;
+                }
             }
         }
 
@@ -372,7 +386,7 @@ class DatabaseHandler extends BaseHandler
                 && is_callable($callable = $this->settings->get('sorts')[$column])
             ) {
                 // Apply custom sort logic
-                call_user_func_array($callable, $data, $direction);
+                call_user_func($callable, $data, $direction);
             } else {
                 $data->orderBy($column, $direction);
             }
