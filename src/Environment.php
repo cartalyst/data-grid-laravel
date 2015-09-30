@@ -43,7 +43,11 @@ class Environment
      */
     public function __construct(Provider $requestProvider = null)
     {
-        $this->requestProvider = $requestProvider ?: new RequestProvider(Request::createFromGlobals());
+        if (is_null($requestProvider)) {
+            $requestProvider = new RequestProvider(Request::createFromGlobals());
+        }
+
+        $this->requestProvider = $requestProvider;
     }
 
     /**
