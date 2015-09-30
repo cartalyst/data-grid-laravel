@@ -18,11 +18,7 @@
  * @link       http://cartalyst.com
  */
 
-namespace Cartalyst\DataGrid\Laravel\Tests;
-
-use stdClass;
 use Mockery as m;
-use PHPUnit_Framework_TestCase;
 use Cartalyst\Attributes\EntityTrait;
 use Cartalyst\Attributes\EntityInterface;
 use Illuminate\Database\Eloquent\Model as Eloquent;
@@ -234,7 +230,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         ];
         $actual = $handler->getFilters();
         $this->assertCount(2, $actual);
-        list($actual,) = $actual;
+        list($actual, ) = $actual;
 
         $this->assertEquals($expected, $actual);
     }
@@ -620,7 +616,6 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpPaginationLeavesDefaultParametersIfNoFilteredResultsArePresent()
     {
-
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
             [$this->getMockEloquentBuilder(), $this->getSettings()]);
 
@@ -822,9 +817,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
 class Foo extends Eloquent implements EntityInterface
 {
-
     use EntityTrait;
-
 }
 
 class Bar extends Eloquent

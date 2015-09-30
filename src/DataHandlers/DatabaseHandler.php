@@ -150,7 +150,6 @@ class DatabaseHandler extends BaseHandler
         list($columnFilters, $globalFilters) = $this->getFilters();
 
         foreach ($columnFilters as $filter) {
-
             list($column, $operator, $value) = $filter;
             $applied[] = [
                 'column' => $column,
@@ -169,7 +168,6 @@ class DatabaseHandler extends BaseHandler
         }
 
         foreach ($globalFilters as $filter) {
-
             list($operator, $value) = $filter;
             $applied[] = [
                 'operator' => $operator,
