@@ -2,23 +2,23 @@
 
 [![Build Status](https://magnum.travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=master)](https://magnum.travis-ci.com/cartalyst/data-grid-laravel)
 
-Laravel 5 integration for the [Cartalyst Data Grid 4.0](https://cartalyst.com/manual/data-grid/4.0) package.
+Laravel 5.1 integration for the [Cartalyst Sentinel 4.0](https://cartalyst.com/manual/data-grid/4.0) package.
 
-This package requires PHP 5.4+ and comes bundled with a Laravel 5 Facade and a Service Provider to simplify the optional framework integration and follows the FIG standard PSR-1, PSR-2 and PSR-4 to ensure a high level of interoperability between shared PHP code.
+The package requires PHP 5.5.9+ and follows the FIG standards PSR-1, PSR-2 and PSR-4 to ensure a high level of interoperability between shared PHP and is unit-tested.
 
 Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](LICENSE). Code well, rock on.
 
 ## Documentation
 
-Reader-friendly Documentation can be found here. [Data Grid Laravel Manual](https://cartalyst.com/manual/data-grid-laravel/1.0).
+Reader-friendly Documentation can be found [here](https://cartalyst.com/manual/data-grid-laravel/1.0).
 
 Raw files can be found via this projects docs/version branch.
 
 - [1.0](https://github.com/cartalyst/data-grid/tree/docs/1.0)
 
-## Changelog
+## Change Log
 
-Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a full history of the project.
+Important versions listed below. Refer to the [Change Log](CHANGELOG.md) for a full history of the project.
 
 - [1.0](CHANGELOG.md) - TBA
 
@@ -26,7 +26,7 @@ Important versions listed below. Refer to the [Changelog](CHANGELOG.md) for a fu
 
 The following support channels can be used for contact.
 
-- [Twitter](https://twitter.com/@cartalyst)
+- [Twitter](https://twitter.com/cartalyst)
 - [Email](mailto:help@cartalyst.com)
 
 Bug reports, feature requests, and pull requests can be submitted by following our [Contribution Guide](CONTRIBUTING.md).
