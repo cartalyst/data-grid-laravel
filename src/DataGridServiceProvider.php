@@ -28,37 +28,33 @@ class DataGridServiceProvider extends ServiceProvider
     /**
      * {@inheritdoc}
      */
+    public function boot()
+    {
+        if ($this->app->runningInConsole()) {
+            // Publish config
+            $this->publishes([
+                $this->getResourcePath('config/config.php') => config_path('cartalyst/data-grid/config.php'),
+            ], 'config');
+
+            // Publish assets
+            $this->publishes([
+                realpath(__DIR__.'/../../data-grid/resources/assets') => public_path('assets/vendor/cartalyst/data-grid'),
+            ], 'assets');
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function register()
     {
-        $this->prepareResources();
+        $this->mergeConfigFrom(
+            $this->getResourcePath('config/config.php'), 'cartalyst.data-grid.config'
+        );
 
         $this->registerIlluminateRequestProvider();
 
         $this->registerDataGrid();
-    }
-
-    /**
-     * Prepare the package resources.
-     *
-     * @return void
-     */
-    protected function prepareResources()
-    {
-        // Publish config
-        $config = realpath(__DIR__.'/../resources/config/config.php');
-
-        $this->mergeConfigFrom($config, 'cartalyst.data-grid');
-
-        $this->publishes([
-            $config => config_path('cartalyst.data-grid.php'),
-        ], 'config');
-
-        // Publish assets
-        $assets = realpath(__DIR__.'/../../data-grid/resources/assets');
-
-        $this->publishes([
-            $assets => public_path('assets/vendor/cartalyst/data-grid'),
-        ], 'assets');
     }
 
     /**
@@ -69,20 +65,20 @@ class DataGridServiceProvider extends ServiceProvider
     protected function registerIlluminateRequestProvider()
     {
         $this->app->singleton('datagrid.request', function ($app) {
-            $requestProvider = new RequestProvider($app['request']);
-
             $config = $app['config']->get('cartalyst.data-grid');
 
+            $requestProvider = new RequestProvider($app['request']);
+
             $requestProvider->setDefaultMethod($config['method']);
-            $requestProvider->setDefaultThreshold($config['threshold']);
             $requestProvider->setDefaultThrottle($config['throttle']);
+            $requestProvider->setDefaultThreshold($config['threshold']);
 
             return $requestProvider;
         });
     }
 
     /**
-     * Register data grid.
+     * Registers Data Grid.
      *
      * @return void
      */
@@ -91,5 +87,18 @@ class DataGridServiceProvider extends ServiceProvider
         $this->app->singleton('datagrid', function ($app) {
             return new Environment($app['datagrid.request']);
         });
+
+        $this->app->alias('datagrid', 'Cartalyst\DataGrid\DataGrid');
+    }
+
+    /**
+     * Returns the full path to the given resource.
+     *
+     * @param  string  $resource
+     * @return string
+     */
+    protected function getResourcePath($resource)
+    {
+        return realpath(__DIR__.'/../resources/'.$resource);
     }
 }
