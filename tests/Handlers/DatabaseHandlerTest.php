@@ -19,10 +19,11 @@
  */
 
 use Mockery as m;
-use Cartalyst\Attributes\EntityTrait;
-use Cartalyst\Attributes\EntityInterface;
 use Illuminate\Database\Eloquent\Model as Eloquent;
 use Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler as Handler;
+
+use Cartalyst\DataGrid\Laravel\Tests\Stubs\Bar as BarModel;
+use Cartalyst\DataGrid\Laravel\Tests\Stubs\Foo;
 
 class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 {
@@ -270,7 +271,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpAttributeFilters()
     {
-        $model = m::mock('Cartalyst\DataGrid\Laravel\Tests\Foo');
+        $model = m::mock('Cartalyst\DataGrid\Laravel\Tests\Stubs\Foo');
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
         $model->shouldReceive('availableAttributes')->once()->andReturn($collection = m::mock('Illuminate\Support\Collection'));
@@ -496,8 +497,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $query = $handler->getData();
 
         $expected = new \Illuminate\Database\Eloquent\Collection([
-            new Bar(['foo' => 'bar', 'baz' => 'foo']),
-            new Bar(['foo' => 'fred', 'baz' => 'bar']),
+            new BarModel(['foo' => 'bar', 'baz' => 'foo']),
+            new BarModel(['foo' => 'fred', 'baz' => 'bar']),
         ]);
 
         $validated = [
@@ -813,14 +814,4 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             ]
         ];
     }
-}
-
-class Foo extends Eloquent implements EntityInterface
-{
-    use EntityTrait;
-}
-
-class Bar extends Eloquent
-{
-    protected $guarded = [];
 }

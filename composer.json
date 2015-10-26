@@ -36,6 +36,9 @@
     "autoload": {
         "psr-4": { "Cartalyst\\DataGrid\\Laravel\\": "src/" }
     },
+    "autoload-dev": {
+        "psr-4": { "Cartalyst\\DataGrid\\Laravel\\Tests\\": "tests/" }
+    },
     "extra": {
         "component": "package",
         "branch-alias": {

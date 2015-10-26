@@ -23,8 +23,8 @@ namespace Cartalyst\DataGrid\Laravel\DataHandlers;
 use RuntimeException;
 use InvalidArgumentException;
 use Cartalyst\Attributes\Value;
-use Cartalyst\DataGrid\DataHandlers\AbstractHandler;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Cartalyst\DataGrid\DataHandlers\AbstractHandler;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -82,9 +82,11 @@ class DatabaseHandler extends AbstractHandler
 
         // Since Data Grid accepts different data types,
         // we need to check which ones are valid types.
-        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data) && ! $this->isEloquentModel($data)) {
+        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data)) {
             throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
         }
+
+        return $data;
     }
 
     /**
