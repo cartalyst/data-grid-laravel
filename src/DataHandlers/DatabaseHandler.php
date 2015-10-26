@@ -62,10 +62,16 @@ class DatabaseHandler extends BaseHandler
     protected $eavClass;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function validateSource($data)
     {
+        // Since Data Grid accepts different data types,
+        // we need to check which ones are valid types.
+        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data)) {
+            throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
+        }
+
         $this->eavClass = get_class($data);
 
         // If the data is an instance of an Eloquent model,
@@ -79,39 +85,7 @@ class DatabaseHandler extends BaseHandler
 
             return $data;
         }
-
-        // Since Data Grid accepts different data types,
-        // we need to check which ones are valid types.
-        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data)) {
-            throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
-        }
     }
-
-    private function isEloquentModel($object)
-    {
-        return $object instanceof EloquentModel;
-    }
-
-    private function isHasMany($object)
-    {
-        return $object instanceof HasMany;
-    }
-
-    private function isQueryBuilder($object)
-    {
-        return $object instanceof QueryBuilder;
-    }
-
-    private function isBelongsToMany($object)
-    {
-        return $object instanceof BelongsToMany;
-    }
-
-    private function isEloquentQueryBuilder($object)
-    {
-        return $object instanceof EloquentQueryBuilder;
-    }
-
 
     /**
      * {@inheritdoc}
@@ -219,7 +193,7 @@ class DatabaseHandler extends BaseHandler
      */
     protected function applyFilter($query, $column, $operator, $value, $method = 'and')
     {
-        $method = ($method === 'and') ? 'where' : 'orWhere';
+        $method = $method === 'and' ? 'where' : 'orWhere';
 
         switch ($operator) {
             case 'like':
@@ -435,8 +409,8 @@ class DatabaseHandler extends BaseHandler
 
         $page = $this->request->getPage();
         $method = $this->request->getMethod();
-        $threshold = $this->request->getThreshold();
         $throttle = $this->request->getThrottle();
+        $threshold = $this->request->getThreshold();
 
         list($pagesCount, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
 
@@ -479,4 +453,32 @@ class DatabaseHandler extends BaseHandler
             $this->attributes = $arrayable === true ? $attributes->toArray() : $attributes;
         }
     }
+
+
+
+    private function isEloquentModel($object)
+    {
+        return $object instanceof EloquentModel;
+    }
+
+    private function isHasMany($object)
+    {
+        return $object instanceof HasMany;
+    }
+
+    private function isQueryBuilder($object)
+    {
+        return $object instanceof QueryBuilder;
+    }
+
+    private function isBelongsToMany($object)
+    {
+        return $object instanceof BelongsToMany;
+    }
+
+    private function isEloquentQueryBuilder($object)
+    {
+        return $object instanceof EloquentQueryBuilder;
+    }
+
 }
