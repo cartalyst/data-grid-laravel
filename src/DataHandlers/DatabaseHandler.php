@@ -309,9 +309,9 @@ class DatabaseHandler extends AbstractHandler
 
         $filters = $this->parameters->get('filters');
 
-        $this->parameters->set(
-            'filtered', count($filters) ? $this->prepareCount() : $total
-        );
+        $filtered = count($filters) ? $this->prepareCount() : $total;
+
+        $this->parameters->set('filtered', $filtered);
     }
 
     /**
@@ -341,8 +341,10 @@ class DatabaseHandler extends AbstractHandler
         $_sorts = $this->settings->get('sorts');
 
         foreach ($sorts as $sort) {
-            $column = (array_key_exists('column', $sort) ? $sort['column'] : null);
-            $direction = (array_key_exists('direction', $sort) ? $sort['direction'] : null);
+            $column = array_key_exists('column', $sort) ? $sort['column'] : null;
+
+            $direction = array_key_exists('direction', $sort) ? $sort['direction'] : null;
+
             $column = $this->calculateSortColumn($column);
 
             if (! $column) {
@@ -419,11 +421,11 @@ class DatabaseHandler extends AbstractHandler
         $this->data->forPage($page, $perPage);
 
         $this->parameters->add([
-            'page' => $page,
-            'pages' => $pagesCount,
+            'page'          => $page,
+            'pages'         => $total,
+            'per_page'      => $perPage,
             'previous_page' => $previousPage,
-            'next_page' => $nextPage,
-            'per_page' => $perPage,
+            'next_page'     => $nextPage,
         ]);
     }
 
@@ -454,31 +456,61 @@ class DatabaseHandler extends AbstractHandler
         }
     }
 
-
-
+    /**
+     * Determines if the given object is an instance of the eloquent model.
+     *
+     * @param  mixed  $object
+     * @return bool
+     */
     private function isEloquentModel($object)
     {
         return $object instanceof EloquentModel;
     }
 
+    /**
+     * Determines if the given object is an instance
+     * of the eloquent has many relationship.
+     *
+     * @param  mixed  $object
+     * @return bool
+     */
     private function isHasMany($object)
     {
         return $object instanceof HasMany;
     }
 
+    /**
+     * Determines if the given object is an instance of the query builder.
+     *
+     * @param  mixed  $object
+     * @return bool
+     */
     private function isQueryBuilder($object)
     {
         return $object instanceof QueryBuilder;
     }
 
+    /**
+     * Determines if the given object is an instance of
+     * the eloquent belongs to many relationship.
+     *
+     * @param  mixed  $object
+     * @return bool
+     */
     private function isBelongsToMany($object)
     {
         return $object instanceof BelongsToMany;
     }
 
+    /**
+     * Determines if the given object is an instance
+     * of the eloquent query builder.
+     *
+     * @param  mixed  $object
+     * @return bool
+     */
     private function isEloquentQueryBuilder($object)
     {
         return $object instanceof EloquentQueryBuilder;
     }
-
 }
