@@ -38,7 +38,9 @@ return [
     | Threshold
     |--------------------------------------------------------------------------
     |
-    | Define the default threshold (number of results before pagination begins).
+    | Define the default threshold value.
+    |
+    | This is the number of results before the pagination begins.
     |
     */
 
@@ -49,7 +51,7 @@ return [
     | Throttle
     |--------------------------------------------------------------------------
     |
-    | Define the default throttle, which is the maximum results set.
+    | Define the default throttle value, which is the maximum results set.
     |
     */
 
