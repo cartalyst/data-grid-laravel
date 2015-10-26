@@ -53,12 +53,12 @@ class Environment
     /**
      * Create a new data grid instance.
      *
-     * @param  \Cartalyst\DataGrid\Contracts\Handler  $handler
+     * @param  \Cartalyst\DataGrid\Contracts\Handler  $dataHandler
      * @param  mixed  $requestProvider
      * @return \Cartalyst\DataGrid\DataGrid|mixed
      */
-    public function make(Handler $handler, $requestProvider = null)
+    public function make(Handler $dataHandler, $requestProvider = null)
     {
-        return DataGrid::make($handler, $requestProvider ?: $this->requestProvider);
+        return DataGrid::make($dataHandler, $requestProvider ?: $this->requestProvider);
     }
 }

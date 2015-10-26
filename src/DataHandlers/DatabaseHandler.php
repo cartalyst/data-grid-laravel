@@ -23,10 +23,10 @@ namespace Cartalyst\DataGrid\Laravel\DataHandlers;
 use RuntimeException;
 use InvalidArgumentException;
 use Cartalyst\Attributes\Value;
-use Illuminate\Database\Eloquent\Model;
 use Cartalyst\DataGrid\DataHandlers\BaseHandler;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder as EloquentQueryBuilder;
 use Illuminate\Database\MySqlConnection as MySqlDatabaseConnection;
@@ -70,26 +70,48 @@ class DatabaseHandler extends BaseHandler
 
         // If the data is an instance of an Eloquent model,
         // we'll grab a new query from it.
-        if ($data instanceof Model) {
+        if ($this->isEloquentModel($data)) {
             $this->extractProperties($data);
 
             return $data->newQuery();
-        } elseif ($data instanceof EloquentQueryBuilder) {
+        } elseif ($this->isEloquentQueryBuilder($data)) {
             $this->extractProperties($data->getModel());
 
             return $data;
         }
 
-        $isHasMany       = $data instanceof HasMany;
-        $isQueryBuilder  = $data instanceof QueryBuilder;
-        $isBelongsToMany = $data instanceof BelongsToMany;
-
         // Since Data Grid accepts different data types,
         // we need to check which ones are valid types.
-        if (! $isQueryBuilder && ! $isHasMany && ! $isBelongsToMany) {
+        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data)) {
             throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
         }
     }
+
+    private function isEloquentModel($object)
+    {
+        return $object instanceof EloquentModel;
+    }
+
+    private function isHasMany($object)
+    {
+        return $object instanceof HasMany;
+    }
+
+    private function isQueryBuilder($object)
+    {
+        return $object instanceof QueryBuilder;
+    }
+
+    private function isBelongsToMany($object)
+    {
+        return $object instanceof BelongsToMany;
+    }
+
+    private function isEloquentQueryBuilder($object)
+    {
+        return $object instanceof EloquentQueryBuilder;
+    }
+
 
     /**
      * {@inheritdoc}
@@ -107,13 +129,13 @@ class DatabaseHandler extends BaseHandler
      */
     protected function prepareCount()
     {
-        if ($this->data instanceof EloquentQueryBuilder && empty($this->data->getQuery()->groups)
-            || $this->data instanceof QueryBuilder && empty($this->data->groups)
-        ) {
-            return $this->data->count();
+        $data = $this->data;
+
+        if ($this->isEloquentQueryBuilder($data) && empty($data->getQuery()->groups) || $this->isQueryBuilder($data) && empty($data->groups)) {
+            return $data->count();
         }
 
-        return count($this->data->get());
+        return count($data->get());
     }
 
     /**
@@ -144,42 +166,40 @@ class DatabaseHandler extends BaseHandler
      */
     public function prepareFilters()
     {
-        $me = $this;
         $applied = [];
 
         list($columnFilters, $globalFilters) = $this->getFilters();
 
+        $data = $this->data;
+
+        $filters = $this->settings->get('filters');
+
         foreach ($columnFilters as $filter) {
             list($column, $operator, $value) = $filter;
-            $applied[] = [
-                'column' => $column,
-                'operator' => $operator,
-                'value' => $value,
-            ];
 
-            if (array_key_exists($column, $this->settings->get('filters'))
-                && is_callable($callable = $this->settings->get('filters')[$column])
-            ) {
+            $applied[] = compact('column', 'operator', 'value');
+
+            if (array_key_exists($column, $filters) && is_callable($callable = $filters[$column])) {
                 // Apply custom sort logic
-                call_user_func($callable, $this->data, $operator, $value);
+                call_user_func($callable, $data, $operator, $value);
             } else {
-                $this->applyFilter($this->data, $column, $operator, $value);
+                $this->applyFilter($data, $column, $operator, $value);
             }
         }
 
+        $global = $this->settings->get('global');
+
         foreach ($globalFilters as $filter) {
             list($operator, $value) = $filter;
-            $applied[] = [
-                'operator' => $operator,
-                'value' => $value,
-            ];
 
-            if (is_callable($callable = $this->settings->get('global'))) {
+            $applied[] = compact('operator', 'value');
+
+            if (is_callable($callable = $global)) {
                 // Apply custom sort logic
-                call_user_func($callable, $this->data, $operator, $value);
+                call_user_func($callable, $data, $operator, $value);
             } else {
-                $this->data->whereNested(function ($data) use ($me, $operator, $value) {
-                    $me->globalFilter($data, $operator, $value);
+                $this->data->whereNested(function ($data) use ($operator, $value) {
+                    $this->globalFilter($data, $operator, $value);
                 });
             }
         }
@@ -278,7 +298,7 @@ class DatabaseHandler extends BaseHandler
     {
         $data = $this->data;
 
-        if ($data instanceof EloquentQueryBuilder) {
+        if ($this->isEloquentQueryBuilder($data)) {
             $data = $data->getQuery();
         }
 
@@ -311,11 +331,13 @@ class DatabaseHandler extends BaseHandler
      */
     public function prepareFilteredCount()
     {
-        if (count($this->params->get('filters'))) {
-            $this->params->set('filtered', $this->prepareCount());
-        } else {
-            $this->params->set('filtered', $this->params->get('total'));
-        }
+        $total = $this->params->get('total');
+
+        $filters = $this->params->get('filters');
+
+        $this->params->set(
+            'filtered', count($filters) ? $this->prepareCount() : $total
+        );
     }
 
     /**
@@ -325,15 +347,12 @@ class DatabaseHandler extends BaseHandler
     {
         $data = $this->data;
 
-        if ($data instanceof HasMany || $data instanceof BelongsToMany) {
-            $data = $data->getQuery();
-        }
-
-        if ($data instanceof EloquentQueryBuilder) {
+        if ($this->isHasMany($data) || $this->isBelongsToMany($data) || $this->isEloquentQueryBuilder($data)) {
             $data = $data->getQuery();
         }
 
         $requestedSort = $this->request->getSort();
+
         // If request doesn't provide sort, set the defaults
         if (empty($requestedSort) && $this->settings->has('sort')) {
             $sorts = [$this->settings->get('sort')];
@@ -342,31 +361,28 @@ class DatabaseHandler extends BaseHandler
         }
 
         $applied = [];
+
         $data->orders = [];
+
+        $_sorts = $this->settings->get('sorts');
 
         foreach ($sorts as $sort) {
             $column = (array_key_exists('column', $sort) ? $sort['column'] : null);
             $direction = (array_key_exists('direction', $sort) ? $sort['direction'] : null);
-
             $column = $this->calculateSortColumn($column);
 
             if (! $column) {
                 continue;
             }
 
-            if (array_key_exists($column, $this->settings->get('sorts'))
-                && is_callable($callable = $this->settings->get('sorts')[$column])
-            ) {
+            if (array_key_exists($column, $sorts) && is_callable($callable = $_sorts[$column])) {
                 // Apply custom sort logic
                 call_user_func($callable, $data, $direction);
             } else {
                 $data->orderBy($column, $direction);
             }
 
-            $applied[] = [
-                'column' => $column,
-                'direction' => $direction,
-            ];
+            $applied[] = compact('column', 'direction');
         }
 
         if (! empty($requestedSort)) {
