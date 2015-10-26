@@ -2,7 +2,7 @@
 
 [![Build Status](https://magnum.travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=master)](https://magnum.travis-ci.com/cartalyst/data-grid-laravel)
 
-Laravel 5.1 integration for the [Cartalyst Data-Grid 4.0](https://cartalyst.com/manual/data-grid/4.0) package.
+Laravel 5.1 integration for the [Cartalyst Data Grid 4.0](https://cartalyst.com/manual/data-grid/4.0) package.
 
 The package requires PHP 5.5.9+ and follows the FIG standards PSR-1, PSR-2 and PSR-4 to ensure a high level of interoperability between shared PHP and is unit-tested.
 
@@ -36,6 +36,10 @@ Bug reports, feature requests, and pull requests can be submitted by following o
 - [Versioning](CONTRIBUTING.md#versioning)
 - [Coding Standards](CONTRIBUTING.md#coding-standards)
 - [Pull Requests](CONTRIBUTING.md#pull-requests)
+
+## Security
+
+If you discover any security related issues, please email help@cartalyst.net instead of using the issue tracker.
 
 ## License
 
