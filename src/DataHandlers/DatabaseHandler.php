@@ -23,7 +23,7 @@ namespace Cartalyst\DataGrid\Laravel\DataHandlers;
 use RuntimeException;
 use InvalidArgumentException;
 use Cartalyst\Attributes\Value;
-use Cartalyst\DataGrid\DataHandlers\BaseHandler;
+use Cartalyst\DataGrid\DataHandlers\AbstractHandler;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Eloquent\Model as EloquentModel;
@@ -31,7 +31,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder as EloquentQueryBuilder;
 use Illuminate\Database\MySqlConnection as MySqlDatabaseConnection;
 
-class DatabaseHandler extends BaseHandler
+class DatabaseHandler extends AbstractHandler
 {
     /**
      * Appended attributes.
@@ -68,7 +68,7 @@ class DatabaseHandler extends BaseHandler
     {
         // Since Data Grid accepts different data types,
         // we need to check which ones are valid types.
-        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data)) {
+        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data) && ! $this->isEloquentModel($data)) {
             throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
         }
 
@@ -92,7 +92,7 @@ class DatabaseHandler extends BaseHandler
      */
     public function prepareTotalCount()
     {
-        $this->params->set('total', $this->prepareCount());
+        $this->parameters->set('total', $this->prepareCount());
     }
 
     /**
@@ -178,7 +178,7 @@ class DatabaseHandler extends BaseHandler
             }
         }
 
-        $this->params->set('filters', $applied);
+        $this->parameters->set('filters', $applied);
     }
 
     /**
@@ -305,11 +305,11 @@ class DatabaseHandler extends BaseHandler
      */
     public function prepareFilteredCount()
     {
-        $total = $this->params->get('total');
+        $total = $this->parameters->get('total');
 
-        $filters = $this->params->get('filters');
+        $filters = $this->parameters->get('filters');
 
-        $this->params->set(
+        $this->parameters->set(
             'filtered', count($filters) ? $this->prepareCount() : $total
         );
     }
@@ -325,7 +325,7 @@ class DatabaseHandler extends BaseHandler
             $data = $data->getQuery();
         }
 
-        $requestedSort = $this->request->getSort();
+        $requestedSort = $this->requestProvider->getSort();
 
         // If request doesn't provide sort, set the defaults
         if (empty($requestedSort) && $this->settings->has('sort')) {
@@ -360,7 +360,7 @@ class DatabaseHandler extends BaseHandler
         }
 
         if (! empty($requestedSort)) {
-            $this->params->set('sort', $applied);
+            $this->parameters->set('sort', $applied);
         }
     }
 
@@ -396,7 +396,7 @@ class DatabaseHandler extends BaseHandler
      */
     public function preparePagination($paginate = true)
     {
-        $filteredCount = $this->params->get('filtered');
+        $filteredCount = $this->parameters->get('filtered');
 
         // If our filtered results are zero, let's not set any pagination
         if ($filteredCount == 0) {
@@ -407,10 +407,10 @@ class DatabaseHandler extends BaseHandler
             return $filteredCount;
         }
 
-        $page = $this->request->getPage();
-        $method = $this->request->getMethod();
-        $throttle = $this->request->getThrottle();
-        $threshold = $this->request->getThreshold();
+        $page = $this->requestProvider->getPage();
+        $method = $this->requestProvider->getMethod();
+        $throttle = $this->requestProvider->getThrottle();
+        $threshold = $this->requestProvider->getThreshold();
 
         list($pagesCount, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
 
@@ -418,7 +418,7 @@ class DatabaseHandler extends BaseHandler
 
         $this->data->forPage($page, $perPage);
 
-        $this->params->add([
+        $this->parameters->add([
             'page' => $page,
             'pages' => $pagesCount,
             'previous_page' => $previousPage,
