@@ -45,7 +45,7 @@ class DataGridServiceProvider extends ServiceProvider
 
             // Publish assets
             $this->publishes([
-                $this->getResourcePath('assets') => public_path('assets/vendor/cartalyst/data-grid'),
+                $this->getResourcePath('assets', true) => public_path('assets/vendor/cartalyst/data-grid'),
             ], 'assets');
         }
     }
@@ -104,10 +104,15 @@ class DataGridServiceProvider extends ServiceProvider
      * Returns the full path to the given resource.
      *
      * @param  string  $resource
+     * @param  bool  $mainPackage
      * @return string
      */
-    protected function getResourcePath($resource)
+    protected function getResourcePath($resource, $mainPackage = false)
     {
+        if ($mainPackage === true) {
+            return realpath(__DIR__.'/../../data-grid/resources/'.$resource);
+        }
+
         return realpath(__DIR__.'/../resources/'.$resource);
     }
 }
