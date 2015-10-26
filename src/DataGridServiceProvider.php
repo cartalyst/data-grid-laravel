@@ -26,6 +26,13 @@ use Cartalyst\DataGrid\Providers\RequestProvider;
 class DataGridServiceProvider extends ServiceProvider
 {
     /**
+     * Holds the configuration values.
+     *
+     * @var array
+     */
+    protected $config = [];
+
+    /**
      * {@inheritdoc}
      */
     public function boot()
@@ -38,7 +45,7 @@ class DataGridServiceProvider extends ServiceProvider
 
             // Publish assets
             $this->publishes([
-                realpath(__DIR__.'/../../data-grid/resources/assets') => public_path('assets/vendor/cartalyst/data-grid'),
+                $this->getResourcePath('assets') => public_path('assets/vendor/cartalyst/data-grid'),
             ], 'assets');
         }
     }
@@ -48,9 +55,13 @@ class DataGridServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        $configurationKey = 'cartalyst.data-grid.config';
+
         $this->mergeConfigFrom(
-            $this->getResourcePath('config/config.php'), 'cartalyst.data-grid.config'
+            $this->getResourcePath('config/config.php'), $configurationKey
         );
+
+        $this->config = $this->app['config']->get($configurationKey);
 
         $this->registerIlluminateRequestProvider();
 
@@ -65,13 +76,11 @@ class DataGridServiceProvider extends ServiceProvider
     protected function registerIlluminateRequestProvider()
     {
         $this->app->singleton('datagrid.request', function ($app) {
-            $config = $app['config']->get('cartalyst.data-grid');
-
             $requestProvider = new RequestProvider($app['request']);
 
-            $requestProvider->setDefaultMethod($config['method']);
-            $requestProvider->setDefaultThrottle($config['throttle']);
-            $requestProvider->setDefaultThreshold($config['threshold']);
+            $requestProvider->setDefaultMethod($this->config['method']);
+            $requestProvider->setDefaultThrottle($this->config['throttle']);
+            $requestProvider->setDefaultThreshold($this->config['threshold']);
 
             return $requestProvider;
         });
