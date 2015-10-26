@@ -66,12 +66,6 @@ class DatabaseHandler extends AbstractHandler
      */
     public function validateSource($data)
     {
-        // Since Data Grid accepts different data types,
-        // we need to check which ones are valid types.
-        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data) && ! $this->isEloquentModel($data)) {
-            throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
-        }
-
         $this->eavClass = get_class($data);
 
         // If the data is an instance of an Eloquent model,
@@ -84,6 +78,12 @@ class DatabaseHandler extends AbstractHandler
             $this->extractProperties($data->getModel());
 
             return $data;
+        }
+
+        // Since Data Grid accepts different data types,
+        // we need to check which ones are valid types.
+        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data) && ! $this->isEloquentModel($data)) {
+            throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
         }
     }
 
@@ -414,7 +414,7 @@ class DatabaseHandler extends AbstractHandler
         $throttle = $this->requestProvider->getThrottle();
         $threshold = $this->requestProvider->getThreshold();
 
-        list($pagesCount, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
+        list($total, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
 
         list($page, $previousPage, $nextPage) = $this->calculatePages($filteredCount, $page, $perPage);
 

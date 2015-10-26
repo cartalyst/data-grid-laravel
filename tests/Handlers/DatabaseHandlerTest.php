@@ -94,7 +94,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler->hydrate();
         $handler->prepareTotalCount();
 
-        $this->assertEquals($handler->getParams()->get('total'), 6);
+        $this->assertEquals($handler->getParameters()->get('total'), 6);
     }
 
     public function testGettingSimpleFilters()
@@ -113,7 +113,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 ]
             );
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
@@ -161,7 +161,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 ]
             );
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
@@ -207,7 +207,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 ['qux' => '|<=8|'],
             ]);
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(true);
 
@@ -253,7 +253,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 ]
             );
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
@@ -293,7 +293,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 ]
             );
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
@@ -336,7 +336,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 ]
             );
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
@@ -365,7 +365,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 ]
             );
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
@@ -392,7 +392,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 ]
             );
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->getData()->shouldReceive('whereRaw')->with('foo regex ?', ['^B.*?\sCorlett$'])->once();
         $handler->getData()->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
@@ -408,13 +408,13 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $provider->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle');
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->getData()->shouldReceive('count')->once()->andReturn(5);
 
         $handler->prepareTotalCount();
         $handler->prepareFilteredCount();
-        $this->assertEquals(5, $handler->getParams()->get('filtered'));
+        $this->assertEquals(5, $handler->getParameters()->get('filtered'));
     }
 
     public function testSortingWhenNoOrdersArePresent()
@@ -426,7 +426,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once();
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->prepareSort();
     }
@@ -443,7 +443,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once()->andReturn([['column' => 'foobar']]);
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->prepareSort();
     }
@@ -457,7 +457,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once()->andReturn([['column' => 'foo', 'direction' => 'asc']]);
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $query = $handler->getData();
 
@@ -528,7 +528,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once()->andReturn([['column' => 'qux', 'direction' => 'desc']]);
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
         $handler->prepareSort();
     }
@@ -634,9 +634,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getMethod')->once()->andReturn('group')
             ->shouldReceive('getPage')->once()->andReturn(1);
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
-        $handler->getParams()->set('filtered', 10);
+        $handler->getParameters()->set('filtered', 10);
 
         $handler->shouldReceive('calculatePagination')->with(10, 'group', 100, 100)->once()->andReturn([1, 10]);
 
@@ -644,9 +644,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $handler->preparePagination();
 
-        $this->assertNull($handler->getParams()->get('previous_page'));
-        $this->assertNull($handler->getParams()->get('next_page'));
-        $this->assertSame(1, $handler->getParams()->get('pages'));
+        $this->assertNull($handler->getParameters()->get('previous_page'));
+        $this->assertNull($handler->getParameters()->get('next_page'));
+        $this->assertSame(1, $handler->getParameters()->get('pages'));
     }
 
     public function testSettingUpPaginationOnPage2Of3()
@@ -661,9 +661,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getMethod')->once()->andReturn('group')
             ->shouldReceive('getPage')->once()->andReturn(2);
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
-        $handler->getParams()->set('filtered', 30);
+        $handler->getParameters()->set('filtered', 30);
 
         $handler->shouldReceive('calculatePagination')->with(30, 'group', 100, 100)->once()->andReturn([3, 10]);
 
@@ -671,9 +671,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $handler->preparePagination();
 
-        $this->assertSame(1, $handler->getParams()->get('previous_page'));
-        $this->assertSame(3, $handler->getParams()->get('next_page'));
-        $this->assertSame(3, $handler->getParams()->get('pages'));
+        $this->assertSame(1, $handler->getParameters()->get('previous_page'));
+        $this->assertSame(3, $handler->getParameters()->get('next_page'));
+        $this->assertSame(3, $handler->getParameters()->get('pages'));
     }
 
     public function testSettingUpPaginationOnPage3Of3()
@@ -688,9 +688,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             ->shouldReceive('getMethod')->once()->andReturn('group')
             ->shouldReceive('getPage')->once()->andReturn(3);
 
-        $handler->setRequest($provider);
+        $handler->setRequestProvider($provider);
 
-        $handler->getParams()->set('filtered', 30);
+        $handler->getParameters()->set('filtered', 30);
 
         $handler->shouldReceive('calculatePagination')->with(30, 'group', 100, 100)->once()->andReturn([3, 10]);
 
@@ -698,9 +698,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $handler->preparePagination();
 
-        $this->assertSame(2, $handler->getParams()->get('previous_page'));
-        $this->assertNull($handler->getParams()->get('next_page'));
-        $this->assertSame(3, $handler->getParams()->get('pages'));
+        $this->assertSame(2, $handler->getParameters()->get('previous_page'));
+        $this->assertNull($handler->getParameters()->get('next_page'));
+        $this->assertSame(3, $handler->getParameters()->get('pages'));
     }
 
     public function testHydrating()
