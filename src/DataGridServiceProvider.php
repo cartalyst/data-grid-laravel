@@ -63,7 +63,7 @@ class DataGridServiceProvider extends ServiceProvider
 
         $this->config = $this->app['config']->get($configurationKey);
 
-        $this->registerIlluminateRequestProvider();
+        $this->registerRequestProvider();
 
         $this->registerDataGrid();
     }
@@ -73,7 +73,7 @@ class DataGridServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function registerIlluminateRequestProvider()
+    protected function registerRequestProvider()
     {
         $this->app->singleton('datagrid.request', function ($app) {
             $requestProvider = new RequestProvider($app['request']);
