@@ -39,7 +39,7 @@ Bug reports, feature requests, and pull requests can be submitted by following o
 
 ## Security
 
-If you discover any security related issues, please email help@cartalyst.net instead of using the issue tracker.
+If you discover any security related issues, please email help@cartalyst.com instead of using the issue tracker.
 
 ## License
 
