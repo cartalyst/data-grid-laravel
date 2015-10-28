@@ -68,22 +68,24 @@ class DatabaseHandler extends AbstractHandler
     {
         $this->eavClass = get_class($data);
 
-        // If the data is an instance of an Eloquent model,
-        // we'll grab a new query from it.
+        $isHasMany = $this->isHasMany($data);
+        $isQueryBuilder = $this->isQueryBuilder($data);
+        $isBelongsToMany = $this->isBelongsToMany($data);
+        $isEloquentModel = $this->isEloquentModel($data);
+        $isEloquentQueryBuilder = $this->isEloquentQueryBuilder($data);
+
+        // Since Data Grid accepts different data types,
+        // we need to check which ones are valid types.
+        if (! $isEloquentModel && ! $isQueryBuilder && ! $isEloquentQueryBuilder && ! $isHasMany && ! $isBelongsToMany) {
+            throw new InvalidArgumentException('Invalid data source passed to the database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
+        }
+
         if ($this->isEloquentModel($data)) {
             $this->extractProperties($data);
 
             return $data->newQuery();
         } elseif ($this->isEloquentQueryBuilder($data)) {
             $this->extractProperties($data->getModel());
-
-            return $data;
-        }
-
-        // Since Data Grid accepts different data types,
-        // we need to check which ones are valid types.
-        if (! $this->isQueryBuilder($data) && ! $this->isHasMany($data) && ! $this->isBelongsToMany($data)) {
-            throw new InvalidArgumentException('Invalid data source passed to database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
         }
 
         return $data;
