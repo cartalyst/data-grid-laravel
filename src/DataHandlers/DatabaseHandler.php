@@ -420,6 +420,8 @@ class DatabaseHandler extends AbstractHandler
 
         list($total, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
 
+        $page = $page > $total ? $total : $page;
+
         list($page, $previousPage, $nextPage) = $this->calculatePages($filteredCount, $page, $perPage);
 
         $this->data->forPage($page, $perPage);
