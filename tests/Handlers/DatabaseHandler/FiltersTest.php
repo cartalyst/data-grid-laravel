@@ -18,14 +18,15 @@
  * @link       http://cartalyst.com
  */
 
+namespace Cartalyst\DataGrid\Laravel\Tests\Handlers\DatabaseHandler;
+
 use Mockery as m;
-use Illuminate\Database\Eloquent\Model as Eloquent;
+use Illuminate\Database\Eloquent\Collection;
+use Cartalyst\DataGrid\Laravel\Tests\Stubs\Bar;
+use Cartalyst\DataGrid\Laravel\Tests\Stubs\Foo;
 use Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler as Handler;
 
-use Cartalyst\DataGrid\Laravel\Tests\Stubs\Bar as BarModel;
-use Cartalyst\DataGrid\Laravel\Tests\Stubs\Foo;
-
-class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
+class FiltersTest extends PHPUnit_Framework_TestCase
 {
     /**
      * Close mockery.
@@ -37,7 +38,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         m::close();
     }
 
-    public function testInstanceOfEloquentModel()
+    /** @test */
+    public function it_can_create_an_instance_with_an_eloquent_model()
     {
         $handler = new Handler($this->getMockModel(), $this->getSettings());
 
@@ -46,7 +48,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler->hydrate();
     }
 
-    public function testInstanceOfQueryEloquentBuilder()
+    /** @test */
+    public function it_can_create_an_instance_with_an_eloquent_builder()
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
@@ -58,29 +61,31 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException \InvalidArgumentException
      */
-    public function testInstanceOfInvalidObject()
+    public function it_will_fail_when_creating_an_instance_with_an_invalid_object()
     {
         $data = m::mock('InvalidObject');
+
         new Handler($data, $this->getSettings());
     }
 
     public function testPreparingSelect()
     {
-        $data = $this->getMockEloquentBuilder();
-        $handler = new Handler($data, $this->getSettings());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $handler->getData()->shouldReceive('addSelect')->with([
-            'foo',
-            'bar.baz as qux',
-        ])->once();
+        $handler->getData()->shouldReceive('addSelect')
+            ->with([
+                'foo',
+                'bar.baz as qux',
+            ])
+            ->once()
+        ;
 
         $handler->prepareSelect();
     }
 
     public function testPreparingCount()
     {
-        $data = $this->getMockEloquentBuilder();
-        $handler = new Handler($data, $this->getSettings());
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $query = $handler->getData();
         $query->shouldReceive('addSelect')->with([
@@ -271,14 +276,27 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpAttributeFilters()
     {
-        $model = m::mock('Cartalyst\DataGrid\Laravel\Tests\Stubs\Foo');
+        $model = m::mock(Foo::class);
+        $builder = m::mock('Illuminate\Database\Eloquent\Builder');
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
-        $model->shouldReceive('availableAttributes')->once()->andReturn($collection = m::mock('Illuminate\Support\Collection'));
+        $collection = m::mock(Collection::class);
         $collection->shouldReceive('lists')->once()->andReturn([]);
 
-        $model->shouldReceive('attributesToArray')->once()->andReturn([]);
-        $model->shouldReceive('newQuery')->once()->andReturn($builder = m::mock('Illuminate\Database\Eloquent\Builder'));
+        $model->shouldReceive('availableAttributes')
+            ->once()
+            ->andReturn($collection)
+        ;
+
+        $model->shouldReceive('attributesToArray')
+            ->once()
+            ->andReturn([])
+        ;
+
+        $model->shouldReceive('newQuery')
+            ->once()
+            ->andReturn($builder)
+        ;
 
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$model, $this->getSettings()]);
@@ -462,9 +480,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $query = $handler->getData();
 
-        $expected = new \Illuminate\Database\Eloquent\Collection([
-            new \Illuminate\Database\Eloquent\Collection(['foo' => 'bar', 'baz' => ['name' => 'foo']]),
-            new \Illuminate\Database\Eloquent\Collection(['corge' => 'fred', 'baz' => ['name' => 'bar']]),
+        $expected = new Collection([
+            new Collection(['foo' => 'bar', 'baz' => ['name' => 'foo']]),
+            new Collection(['corge' => 'fred', 'baz' => ['name' => 'bar']]),
         ]);
 
         $query->getQuery()->shouldReceive('orderBy')->once();
@@ -496,9 +514,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $query = $handler->getData();
 
-        $expected = new \Illuminate\Database\Eloquent\Collection([
-            new BarModel(['foo' => 'bar', 'baz' => 'foo']),
-            new BarModel(['foo' => 'fred', 'baz' => 'bar']),
+        $expected = new Collection([
+            new Bar(['foo' => 'bar', 'baz' => 'foo']),
+            new Bar(['foo' => 'fred', 'baz' => 'bar']),
         ]);
 
         $validated = [
@@ -763,14 +781,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $expected = new \Illuminate\Database\Eloquent\Collection([
-            new \Illuminate\Database\Eloquent\Collection([
+        $expected = new Collection([
+            new Collection([
                 'foo' => 'bar',
-                'baz' => new \Illuminate\Database\Eloquent\Collection(['name' => 'foo'])
+                'baz' => new Collection(['name' => 'foo'])
             ]),
-            new \Illuminate\Database\Eloquent\Collection([
+            new Collection([
                 'corge' => 'fred',
-                'baz' => new \Illuminate\Database\Eloquent\Collection(['name' => 'bar'])
+                'baz' => new Collection(['name' => 'bar'])
             ]),
         ]);
 
