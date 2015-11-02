@@ -331,14 +331,14 @@ class DatabaseHandler extends AbstractHandler
 
         // If request doesn't provide sort, set the defaults
         if (empty($requestedSort) && $this->settings->has('sort')) {
-            $sorts = [$this->settings->get('sort')];
+            // Account for multiple sorts
+            $sorts = $this->settings->get('sort');
+            $sorts = array_key_exists('column', $sorts) ? [$sorts] : $sorts;
         } else {
             $sorts = $requestedSort ?: [];
         }
 
         $applied = [];
-
-        $data->orders = [];
 
         $_sorts = $this->settings->get('sorts');
 
