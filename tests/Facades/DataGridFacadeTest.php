@@ -18,6 +18,9 @@
  * @link       http://cartalyst.com
  */
 
+use Illuminate\Support\Facades\Facade;
+use Cartalyst\DataGrid\Laravel\Facades\DataGrid;
+
 class DataGridFacadeTest extends PHPUnit_Framework_TestCase
 {
     /**
@@ -25,16 +28,14 @@ class DataGridFacadeTest extends PHPUnit_Framework_TestCase
      *
      * @var string
      */
-    protected $facade = 'Cartalyst\DataGrid\Laravel\Facades\DataGrid';
+    protected $facade = DataGrid::class;
 
     /** @test */
     public function it_is_a_facade_instance()
     {
-        $illuminateFacade = 'Illuminate\Support\Facades\Facade';
-
         $reflection = new ReflectionClass($this->facade);
 
-        $this->assertTrue($reflection->isSubclassOf($illuminateFacade));
+        $this->assertTrue($reflection->isSubclassOf(Facade::class));
     }
 
     /** @test */
