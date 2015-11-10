@@ -418,21 +418,15 @@ class DatabaseHandler extends AbstractHandler
         $throttle = $this->requestProvider->getThrottle();
         $threshold = $this->requestProvider->getThreshold();
 
-        list($total, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
+        list($pages, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
 
-        $page = $page > $total ? $total : $page;
+        $page = $page > $pages ? $pages : $page;
 
         list($page, $previousPage, $nextPage) = $this->calculatePages($filteredCount, $page, $perPage);
 
         $this->data->forPage($page, $perPage);
 
-        $this->parameters->add([
-            'page'          => $page,
-            'pages'         => $total,
-            'per_page'      => $perPage,
-            'previous_page' => $previousPage,
-            'next_page'     => $nextPage,
-        ]);
+        $this->parameters->add(compact('page', 'pages', 'perPage', 'previousPage', 'nextPage'));
     }
 
     /**
