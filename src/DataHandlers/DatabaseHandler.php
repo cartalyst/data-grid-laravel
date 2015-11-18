@@ -413,10 +413,15 @@ class DatabaseHandler extends AbstractHandler
             return $filteredCount;
         }
 
-        $page = $this->requestProvider->getPage();
-        $method = $this->requestProvider->getMethod();
-        $throttle = $this->requestProvider->getThrottle();
-        $threshold = $this->requestProvider->getThreshold();
+        $page      = $this->requestProvider->getPage() ?: $this->parameters->get('page');
+        $method    = $this->requestProvider->getMethod() ?: $this->parameters->get('method');
+        $throttle  = $this->requestProvider->getThrottle() ?: $this->parameters->get('throttle');
+        $threshold = $this->requestProvider->getThreshold() ?: $this->parameters->get('threshold');
+
+        // Fallback to defaults
+        $method    = $method ?: $this->requestProvider->getDefaultMethod();
+        $throttle  = $throttle ?: $this->requestProvider->getDefaultThrottle();
+        $threshold = $threshold ?: $this->requestProvider->getDefaultThreshold();
 
         list($pages, $perPage) = $this->calculatePagination($filteredCount, $method, $threshold, $throttle);
 
