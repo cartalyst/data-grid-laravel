@@ -20,7 +20,9 @@
 
 namespace Cartalyst\DataGrid\Laravel\Tests\Handlers\DatabaseHandler;
 
+use stdClass;
 use Mockery as m;
+use PHPUnit_Framework_TestCase;
 use Illuminate\Database\Eloquent\Collection;
 use Cartalyst\DataGrid\Laravel\Tests\Stubs\Bar;
 use Cartalyst\DataGrid\Laravel\Tests\Stubs\Foo;
@@ -110,7 +112,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
 
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getFilters')->once()->andReturn([
                     ['foo' => 'Filter 1'],
@@ -122,7 +131,6 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler->setRequestProvider($provider);
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
-
 
         $expectedColumn = [
             [
@@ -158,7 +166,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
 
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getFilters')->once()->andReturn([
                     ['foo' => 'null'],
@@ -205,7 +220,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
 
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getFilters')->once()->andReturn([
                 ['foo' => '/^\d{1,5}.*?$/'],
@@ -248,7 +270,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
 
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getFilters')->once()->andReturn([
                     ['foo' => 'Filter 1'],
@@ -301,7 +330,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$model, $this->getSettings()]);
 
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getFilters')->once()->andReturn([
                     ['foo' => 'Filter 1'],
@@ -343,7 +379,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getFilters')->once()->andReturn([
                     ['foo' => '|>=5|'],
@@ -377,7 +420,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getFilters')->once()->andReturn([
                     ['baz..name' => 'foo'],
@@ -404,7 +454,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $data = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
         $handler = new Handler($data, $this->getSettings());
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getFilters')->once()->andReturn([
                     ['foo' => '/^B.*?\sCorlett$/'],
@@ -424,7 +481,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $data = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
         $handler = new Handler($data, $this->getSettings());
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle');
 
         $handler->setRequestProvider($provider);
@@ -441,7 +505,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $data = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
         $handler = new Handler($data, $this->getSettings());
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once();
 
@@ -458,7 +529,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $data = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
         $handler = new Handler($data, $this->getSettings());
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once()->andReturn([['column' => 'foobar']]);
 
@@ -472,7 +550,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $data = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
         $handler = new Handler($data, $this->getSettings());
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once()->andReturn([['column' => 'foo', 'direction' => 'asc']]);
 
@@ -543,7 +628,14 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
         $handler = new Handler($data, $this->getSettings());
-        $provider->shouldReceive('getThreshold')
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getMethod')
+            ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once()->andReturn([['column' => 'qux', 'direction' => 'desc']]);
 
@@ -648,9 +740,15 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
-        $provider->shouldReceive('getThreshold')->andReturn(100)
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getThreshold')->andReturn(100)
             ->shouldReceive('getThrottle')->andReturn(100)
-            ->shouldReceive('getMethod')->once()->andReturn('group')
+            ->shouldReceive('getMethod')->andReturn('group')
             ->shouldReceive('getPage')->once()->andReturn(1);
 
         $handler->setRequestProvider($provider);
@@ -663,8 +761,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $handler->preparePagination();
 
-        $this->assertNull($handler->getParameters()->get('previous_page'));
-        $this->assertNull($handler->getParameters()->get('next_page'));
+        $this->assertNull($handler->getParameters()->get('previousPage'));
+        $this->assertNull($handler->getParameters()->get('nextPage'));
         $this->assertSame(1, $handler->getParameters()->get('pages'));
     }
 
@@ -675,9 +773,15 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
-        $provider->shouldReceive('getThreshold')->andReturn(100)
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getThreshold')->andReturn(100)
             ->shouldReceive('getThrottle')->andReturn(100)
-            ->shouldReceive('getMethod')->once()->andReturn('group')
+            ->shouldReceive('getMethod')->andReturn('group')
             ->shouldReceive('getPage')->once()->andReturn(2);
 
         $handler->setRequestProvider($provider);
@@ -690,8 +794,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $handler->preparePagination();
 
-        $this->assertSame(1, $handler->getParameters()->get('previous_page'));
-        $this->assertSame(3, $handler->getParameters()->get('next_page'));
+        $this->assertSame(1, $handler->getParameters()->get('previousPage'));
+        $this->assertSame(3, $handler->getParameters()->get('nextPage'));
         $this->assertSame(3, $handler->getParameters()->get('pages'));
     }
 
@@ -702,9 +806,15 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
-        $provider->shouldReceive('getThreshold')->andReturn(100)
+        $provider
+            ->shouldReceive('getDefaultMethod')
+            ->shouldReceive('getDefaultThrottle')
+            ->shouldReceive('getDefaultThreshold');
+
+        $provider
+            ->shouldReceive('getThreshold')->andReturn(100)
             ->shouldReceive('getThrottle')->andReturn(100)
-            ->shouldReceive('getMethod')->once()->andReturn('group')
+            ->shouldReceive('getMethod')->andReturn('group')
             ->shouldReceive('getPage')->once()->andReturn(3);
 
         $handler->setRequestProvider($provider);
@@ -717,8 +827,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $handler->preparePagination();
 
-        $this->assertSame(2, $handler->getParameters()->get('previous_page'));
-        $this->assertNull($handler->getParameters()->get('next_page'));
+        $this->assertSame(2, $handler->getParameters()->get('previousPage'));
+        $this->assertNull($handler->getParameters()->get('nextPage'));
         $this->assertSame(3, $handler->getParameters()->get('pages'));
     }
 
