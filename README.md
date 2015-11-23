@@ -1,6 +1,6 @@
 # Data Grid Laravel
 
-[![Build Status](https://magnum.travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=master)](https://magnum.travis-ci.com/cartalyst/data-grid-laravel)
+[![Build Status](https://api.travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=master)](https://api.travis-ci.com/cartalyst/data-grid-laravel)
 
 Laravel 5.1 integration for the [Cartalyst Data Grid 4.0](https://cartalyst.com/manual/data-grid/4.0) package.
 
