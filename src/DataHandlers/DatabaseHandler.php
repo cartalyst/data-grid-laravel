@@ -201,7 +201,10 @@ class DatabaseHandler extends AbstractHandler
 
         switch ($operator) {
             case 'like':
-                $value = "%{$value}%";
+                if (strpos($value, '%') === false) {
+                    $value = "%{$value}%";
+                }
+
                 break;
 
             case 'regex':
