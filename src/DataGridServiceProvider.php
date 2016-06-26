@@ -41,12 +41,12 @@ class DataGridServiceProvider extends ServiceProvider
             // Publish config
             $this->publishes([
                 $this->getResourcePath('config/config.php') => config_path('cartalyst/data-grid/config.php'),
-            ], 'config');
+            ], 'data-grid-config');
 
             // Publish assets
             $this->publishes([
                 $this->getResourcePath('assets', true) => public_path('assets/vendor/cartalyst/data-grid'),
-            ], 'assets');
+            ], 'data-grid-assets');
         }
     }
 
