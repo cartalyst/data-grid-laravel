@@ -169,9 +169,9 @@ class DatabaseHandler extends AbstractHandler
                     $value = [$value];
                 }
 
-                $this->data->whereNested(function ($data) use ($column, $operator, $value) {
+                $this->data->whereNested(function () use ($column, $operator, $value) {
                     foreach ($value as $val) {
-                        $this->applyFilter($data, $column, $operator, $val, 'or');
+                        $this->applyFilter($this->data, $column, $operator, $val, 'or');
                     }
                 });
             }
