@@ -161,17 +161,21 @@ class DatabaseHandler extends AbstractHandler
                 // Apply custom sort logic
                 call_user_func($callable, $data, $operator, $value);
             } else {
+                $operand = 'and';
+
                 if (strpos($value, ', ') !== false) {
                     $value = explode(', ', $value);
+
+                    $operand = 'or';
                 }
 
                 if (! is_array($value)) {
                     $value = [$value];
                 }
 
-                $this->data->whereNested(function () use ($column, $operator, $value) {
+                $this->data->whereNested(function () use ($column, $operator, $value, $operand) {
                     foreach ($value as $val) {
-                        $this->applyFilter($this->data, $column, $operator, $val, 'or');
+                        $this->applyFilter($this->data, $column, $operator, $val, $operand);
                     }
                 });
             }
