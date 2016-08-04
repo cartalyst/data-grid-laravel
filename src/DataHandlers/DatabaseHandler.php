@@ -368,17 +368,17 @@ class DatabaseHandler extends AbstractHandler
 
             $direction = array_key_exists('direction', $sort) ? $sort['direction'] : null;
 
-            $column = $this->calculateSortColumn($column);
+            $realColumn = $this->calculateSortColumn($column);
 
-            if (! $column) {
+            if (! $realColumn) {
                 continue;
             }
 
-            if (array_key_exists($column, $sorts) && is_callable($callable = $_sorts[$column])) {
+            if (array_key_exists($realColumn, $sorts) && is_callable($callable = $_sorts[$realColumn])) {
                 // Apply custom sort logic
                 call_user_func($callable, $data, $direction);
             } else {
-                $data->orderBy($column, $direction);
+                $data->orderBy($realColumn, $direction);
             }
 
             $applied[] = compact('column', 'direction');
