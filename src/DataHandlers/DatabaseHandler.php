@@ -465,14 +465,18 @@ class DatabaseHandler extends AbstractHandler
         $this->results = $this->hydrateResults($this->data->get());
     }
 
-
-
+    /**
+     * Extracts properties.
+     *
+     * @param  array  $data
+     * @return void
+     */
     protected function extractProperties($data)
     {
         $this->appends = array_keys($data->attributesToArray());
 
         if (method_exists($data, 'availableAttributes')) {
-            $attributes = $data->availableAttributes()->lists($this->attributesKey);
+            $attributes = $data->availableAttributes()->pluck($this->attributesKey);
 
             $arrayable = method_exists($attributes, 'toArray');
 
