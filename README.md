@@ -1,10 +1,10 @@
 # Data Grid Laravel
 
-[![Build Status](https://api.travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=master)](https://api.travis-ci.com/cartalyst/data-grid-laravel)
+[![Build Status](https://travis-ci.com/cartalyst/data-grid-laravel.svg?token=98Zt8zYdwyheTKqziswS&branch=1.0)](https://travis-ci.com/cartalyst/data-grid-laravel)
 
-Laravel 5.1 integration for the [Cartalyst Data Grid 4.0](https://cartalyst.com/manual/data-grid/4.0) package.
+Laravel 5.3+ integration for the [Cartalyst Data Grid 4.0](https://cartalyst.com/manual/data-grid/4.0) package.
 
-The package requires PHP 5.5.9+ and follows the FIG standards PSR-1, PSR-2 and PSR-4 to ensure a high level of interoperability between shared PHP and is unit-tested.
+The package requires PHP 5.6.4+ and follows the FIG standards PSR-1, PSR-2 and PSR-4 to ensure a high level of interoperability between shared PHP and is unit-tested.
 
 Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](LICENSE). Code well, rock on.
 
@@ -45,4 +45,4 @@ If you discover any security related issues, please email help@cartalyst.com ins
 
 This software is released under the [Cartalyst PSL](LICENSE) License.
 
-© 2011-2015 Cartalyst LLC, All rights reserved.
+© 2011-2017 Cartalyst LLC, All rights reserved.
