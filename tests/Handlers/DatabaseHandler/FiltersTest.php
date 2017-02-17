@@ -299,7 +299,13 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('where')->with('bar.baz', 'like', '%Filter 2%')->once();
         $query->shouldReceive('whereNull')->with('baz')->once();
         $query->shouldReceive('whereNotNull')->with('bar')->once();
-        $query->shouldReceive('whereNested')->with(m::type('Closure'))->once();
+        $query->getQuery()->shouldReceive('orWhere')->with('foo', 'like', '%Filter 3%')->once();
+        $query->getQuery()->shouldReceive('orWhere')->with('bar.baz', 'like', '%Filter 3%')->once();
+
+        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+            $f($query->getQuery());
+            return true;
+        }))->times(5);
 
         $handler->prepareFilters();
     }
@@ -307,11 +313,10 @@ class FiltersTest extends PHPUnit_Framework_TestCase
     public function testSettingUpAttributeFilters()
     {
         $model = m::mock(Foo::class);
-        $builder = m::mock('Illuminate\Database\Eloquent\Builder');
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
         $collection = m::mock(Collection::class);
-        $collection->shouldReceive('lists')->once()->andReturn([]);
+        $collection->shouldReceive('pluck')->once()->andReturn([]);
 
         $model->shouldReceive('availableAttributes')
             ->once()
@@ -325,7 +330,7 @@ class FiltersTest extends PHPUnit_Framework_TestCase
 
         $model->shouldReceive('newQuery')
             ->once()
-            ->andReturn($builder)
+            ->andReturn($query = m::mock('Illuminate\Database\Query\Builder'))
         ;
 
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
@@ -353,11 +358,17 @@ class FiltersTest extends PHPUnit_Framework_TestCase
 
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
-        $builder->shouldReceive('where')->with('foo', 'like', '%Filter 1%')->once();
-        $builder->shouldReceive('where')->with('bar.baz', 'like', '%Filter 2%')->once();
-        $builder->shouldReceive('whereNull')->with('baz')->once();
-        $builder->shouldReceive('whereNotNull')->with('bar')->once();
-        $builder->shouldReceive('whereNested')->with(m::type('Closure'))->once();
+        $query->shouldReceive('where')->with('foo', 'like', '%Filter 1%')->once();
+        $query->shouldReceive('where')->with('bar.baz', 'like', '%Filter 2%')->once();
+        $query->shouldReceive('whereNull')->with('baz')->once();
+        $query->shouldReceive('whereNotNull')->with('bar')->once();
+        $query->shouldReceive('orWhere')->with('foo', 'like', '%Filter 3%')->once();
+        $query->shouldReceive('orWhere')->with('bar.baz', 'like', '%Filter 3%')->once();
+
+        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+            $f($query);
+            return true;
+        }))->times(5);
 
         $handler->prepareFilters();
     }
@@ -413,6 +424,11 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('where')->with('bar.baz', '>', '3')->once();
         $query->shouldReceive('where')->with('bar.baz', '<', '5')->once();
 
+        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+            $f($query->getQuery());
+            return true;
+        }))->times(6);
+
         $handler->prepareFilters();
     }
 
@@ -446,8 +462,13 @@ class FiltersTest extends PHPUnit_Framework_TestCase
             ['corge' => 'fred', 'baz' => ['name' => 'bar']],
         ];
 
-        $handler->getData()->shouldReceive('whereHas')->once();
-        $handler->getData()->shouldReceive('get')->andReturn($expected[0]);
+        $query = $handler->getData();
+
+        $query->shouldReceive('whereHas')->once();
+        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+            $f($query->getQuery());
+            return true;
+        }))->once();
 
         $handler->prepareFilters();
     }
@@ -474,8 +495,14 @@ class FiltersTest extends PHPUnit_Framework_TestCase
 
         $handler->setRequestProvider($provider);
 
-        $handler->getData()->shouldReceive('whereRaw')->with('foo regex ?', ['^B.*?\sCorlett$'])->once();
-        $handler->getData()->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
+        $query = $handler->getData();
+
+        $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
+        $query->shouldReceive('whereRaw')->with('foo regex ?', ['^B.*?\sCorlett$'])->once();
+        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+            $f($query->getQuery());
+            return true;
+        }))->once();
 
         $handler->prepareFilters();
     }
