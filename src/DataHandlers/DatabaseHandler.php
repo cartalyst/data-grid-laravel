@@ -68,10 +68,10 @@ class DatabaseHandler extends AbstractHandler
     {
         $this->eavClass = get_class($data);
 
-        $isHasMany = $this->isHasMany($data);
-        $isQueryBuilder = $this->isQueryBuilder($data);
-        $isBelongsToMany = $this->isBelongsToMany($data);
-        $isEloquentModel = $this->isEloquentModel($data);
+        $isHasMany              = $this->isHasMany($data);
+        $isQueryBuilder         = $this->isQueryBuilder($data);
+        $isBelongsToMany        = $this->isBelongsToMany($data);
+        $isEloquentModel        = $this->isEloquentModel($data);
         $isEloquentQueryBuilder = $this->isEloquentQueryBuilder($data);
 
         // Since Data Grid accepts different data types,
@@ -101,7 +101,7 @@ class DatabaseHandler extends AbstractHandler
 
     /**
      * Counts data records.
-     * Accounts for the bug #4306 on laravel/framework
+     * Accounts for the bug #4306 on laravel/framework.
      *
      * @return int
      */
@@ -243,7 +243,7 @@ class DatabaseHandler extends AbstractHandler
                 $q->where(end($cols), $operator, $value);
             });
         } elseif (array_search($column, $this->attributes) !== false) {
-            $valueModel = new Value;
+            $valueModel = new Value();
 
             $matches = $valueModel->newQuery()
                 ->where('entity_type', $this->eavClass)
@@ -395,7 +395,7 @@ class DatabaseHandler extends AbstractHandler
     public function calculateSortColumn($column = null)
     {
         if (! $column) {
-            return null;
+            return;
         }
 
         $index = array_search($column, $this->settings->get('columns'));
@@ -424,8 +424,8 @@ class DatabaseHandler extends AbstractHandler
         $filteredCount = $this->parameters->get('filtered');
 
         // If our filtered results are zero, let's not set any pagination
-        if ($filteredCount == 0) {
-            return null;
+        if ($filteredCount === 0) {
+            return;
         }
 
         if (! $paginate) {

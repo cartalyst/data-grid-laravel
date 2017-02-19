@@ -28,7 +28,7 @@ use Cartalyst\DataGrid\Laravel\Tests\Stubs\Bar;
 use Cartalyst\DataGrid\Laravel\Tests\Stubs\Foo;
 use Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler as Handler;
 
-class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
+class GeneralTest extends PHPUnit_Framework_TestCase
 {
     /**
      * Close mockery.
@@ -79,8 +79,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
                 'foo',
                 'bar.baz as qux',
             ])
-            ->once()
-        ;
+            ->once();
 
         $handler->prepareSelect();
     }
@@ -107,9 +106,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGettingSimpleFilters()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
 
         $provider
@@ -161,9 +160,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGettingNullFilters()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
 
         $provider
@@ -215,9 +214,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGettingComplexFilters()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
 
         $provider
@@ -258,16 +257,16 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         ];
         $actual = $handler->getFilters();
         $this->assertCount(2, $actual);
-        list($actual, ) = $actual;
+        list($actual) = $actual;
 
         $this->assertEquals($expected, $actual);
     }
 
     public function testSettingUpColumnFilters()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
 
         $provider
@@ -301,8 +300,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $query->getQuery()->shouldReceive('orWhere')->with('foo', 'like', '%Filter 3%')->once();
         $query->getQuery()->shouldReceive('orWhere')->with('bar.baz', 'like', '%Filter 3%')->once();
 
-        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+        $query->shouldReceive('whereNested')->with(m::on(function ($f) use ($query) {
             $f($query->getQuery());
+
             return true;
         }))->times(5);
 
@@ -311,7 +311,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSettingUpAttributeFilters()
     {
-        $model = m::mock(Foo::class);
+        $model    = m::mock(Foo::class);
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
         $collection = m::mock(Collection::class);
@@ -319,18 +319,15 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $model->shouldReceive('availableAttributes')
             ->once()
-            ->andReturn($collection)
-        ;
+            ->andReturn($collection);
 
         $model->shouldReceive('attributesToArray')
             ->once()
-            ->andReturn([])
-        ;
+            ->andReturn([]);
 
         $model->shouldReceive('newQuery')
             ->once()
             ->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
-        ;
 
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$model, $this->getSettings()]);
@@ -364,8 +361,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('orWhere')->with('foo', 'like', '%Filter 3%')->once();
         $query->shouldReceive('orWhere')->with('bar.baz', 'like', '%Filter 3%')->once();
 
-        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+        $query->shouldReceive('whereNested')->with(m::on(function ($f) use ($query) {
             $f($query);
+
             return true;
         }))->times(5);
 
@@ -374,7 +372,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testGlobalFilterOnQuery()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data    = $this->getMockEloquentBuilder();
         $handler = new Handler($data, $this->getSettings());
 
         $query = m::mock('Illuminate\Database\Query\Builder');
@@ -386,9 +384,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testOperatorFilters()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
         $provider
             ->shouldReceive('getDefaultMethod')
@@ -422,8 +420,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $query->shouldReceive('where')->with('bar.baz', '>', '3')->once();
         $query->shouldReceive('where')->with('bar.baz', '<', '5')->once();
 
-        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+        $query->shouldReceive('whereNested')->with(m::on(function ($f) use ($query) {
             $f($query->getQuery());
+
             return true;
         }))->times(6);
 
@@ -432,9 +431,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testNestedFilters()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$data, $this->getSettings()]);
         $provider
             ->shouldReceive('getDefaultMethod')
@@ -462,8 +461,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $query = $handler->getData();
 
         $query->shouldReceive('whereHas')->once();
-        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+        $query->shouldReceive('whereNested')->with(m::on(function ($f) use ($query) {
             $f($query->getQuery());
+
             return true;
         }))->once();
 
@@ -472,9 +472,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testRegexFilters()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = new Handler($data, $this->getSettings());
+        $handler  = new Handler($data, $this->getSettings());
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
@@ -495,8 +495,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
         $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
         $query->shouldReceive('whereRaw')->with('foo regex ?', ['^B.*?\sCorlett$'])->once();
-        $query->shouldReceive('whereNested')->with(m::on(function($f) use ($query) {
+        $query->shouldReceive('whereNested')->with(m::on(function ($f) use ($query) {
             $f($query->getQuery());
+
             return true;
         }))->once();
 
@@ -505,9 +506,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testFilteredCount()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = new Handler($data, $this->getSettings());
+        $handler  = new Handler($data, $this->getSettings());
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
@@ -529,9 +530,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSortingWhenNoOrdersArePresent()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = new Handler($data, $this->getSettings());
+        $handler  = new Handler($data, $this->getSettings());
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
@@ -553,9 +554,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
      */
     public function testSortingInvalidColumn()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = new Handler($data, $this->getSettings());
+        $handler  = new Handler($data, $this->getSettings());
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
@@ -574,9 +575,9 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testSortingByNestedResources3()
     {
-        $data = $this->getMockEloquentBuilder();
+        $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = new Handler($data, $this->getSettings());
+        $handler  = new Handler($data, $this->getSettings());
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
@@ -614,8 +615,8 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testTransform()
     {
-        $data = $this->getMockEloquentBuilder();
-        $settings = $this->getSettings();
+        $data                    = $this->getMockEloquentBuilder();
+        $settings                = $this->getSettings();
         $settings['transformer'] = function ($el) {
             $el->foo = 'foobar';
 
@@ -654,7 +655,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $builder->shouldReceive('orderBy')->once();
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler = new Handler($data, $this->getSettings());
+        $handler  = new Handler($data, $this->getSettings());
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
@@ -696,7 +697,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $result = $handler->calculatePagination(90, 'group', 100, 10);
+        $result                     = $handler->calculatePagination(90, 'group', 100, 10);
         list($totalPages, $perPage) = $result;
         $this->assertSame(1, $totalPages);
         $this->assertSame(90, $perPage);
@@ -706,7 +707,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $result = $handler->calculatePagination(120, 'group', 100, 10);
+        $result                     = $handler->calculatePagination(120, 'group', 100, 10);
         list($totalPages, $perPage) = $result;
         $this->assertSame(10, $totalPages);
         $this->assertSame(12, $perPage);
@@ -716,7 +717,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $result = $handler->calculatePagination(1200, 'single', 100, 100);
+        $result                     = $handler->calculatePagination(1200, 'single', 100, 100);
         list($totalPages, $perPage) = $result;
         $this->assertSame(12, $totalPages);
         $this->assertSame(100, $perPage);
@@ -726,7 +727,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $result = $handler->calculatePagination(12000, 'single', 100, 100);
+        $result                     = $handler->calculatePagination(12000, 'single', 100, 100);
         list($totalPages, $perPage) = $result;
         $this->assertSame(120, $totalPages);
         $this->assertSame(100, $perPage);
@@ -736,7 +737,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $result = $handler->calculatePagination(170, 'group', 100, 10);
+        $result                     = $handler->calculatePagination(170, 'group', 100, 10);
         list($totalPages, $perPage) = $result;
         $this->assertSame(10, $totalPages);
         $this->assertSame(17, $perPage);
@@ -746,7 +747,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $result = $handler->calculatePagination(171, 'group', 100, 10);
+        $result                     = $handler->calculatePagination(171, 'group', 100, 10);
         list($totalPages, $perPage) = $result;
         $this->assertSame(10, $totalPages);
         $this->assertSame(18, $perPage);
@@ -864,12 +865,12 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $results = [
-            $result1 = new stdClass,
-            $result2 = new stdClass,
+            $result1 = new stdClass(),
+            $result2 = new stdClass(),
         ];
 
-        $result1->foo = 'bar';
-        $result1->baz = 'qux';
+        $result1->foo   = 'bar';
+        $result1->baz   = 'qux';
         $result2->corge = 'fred';
 
         $handler->getData()->shouldReceive('get')->andReturn($results);
@@ -895,7 +896,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
         $results = [
-            $result1 = new stdClass,
+            $result1 = new stdClass(),
         ];
 
         $result1->foo = 'bar';
@@ -921,11 +922,11 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
         $expected = new Collection([
             new Collection([
                 'foo' => 'bar',
-                'baz' => new Collection(['name' => 'foo'])
+                'baz' => new Collection(['name' => 'foo']),
             ]),
             new Collection([
                 'corge' => 'fred',
-                'baz' => new Collection(['name' => 'bar'])
+                'baz'   => new Collection(['name' => 'bar']),
             ]),
         ]);
 
@@ -966,7 +967,7 @@ class DatabaseHandlerTest extends PHPUnit_Framework_TestCase
             'columns' => [
                 'foo',
                 'bar.baz' => 'qux',
-            ]
+            ],
         ];
     }
 }
