@@ -1,0 +1,12 @@
+{
+    "preface": [
+        "introduction"
+    ],
+    "setup": [
+        "installation",
+        "integration"
+    ],
+	"usage": [
+		"index"
+	]
+}
