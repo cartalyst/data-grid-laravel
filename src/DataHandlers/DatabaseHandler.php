@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Builder as EloquentQueryBuilder;
 use Illuminate\Database\MySqlConnection as MySqlDatabaseConnection;
+use Illuminate\Database\PostgresConnection as PostgresDatabaseConnection;
 
 class DatabaseHandler extends AbstractHandler
 {
@@ -265,7 +266,26 @@ class DatabaseHandler extends AbstractHandler
             } elseif ($value === '%not_null%') {
                 $query->whereNotNull($column);
             } else {
-                $query->{$method}($column, $operator, $value);
+                if ($this->getConnection() instanceof PostgresDatabaseConnection) {
+                    $booleanMappings = [
+                        '%0%' => '%f%',
+                        '%1%' => '%t%',
+                    ];
+
+                    $query->{$method}(function($q) use ($column, $operator, $booleanMappings, $value) {
+                        $format = 'cast("%s" as text) %s \'%s\'';
+
+                        $q->whereRaw(sprintf($format, $column, $operator, $value));
+
+                        if (isset($booleanMappings[$value])) {
+                            $value = $booleanMappings[$value];
+
+                            $q->orWhereRaw(sprintf($format, $column, $operator, $value));
+                        }
+                    });
+                } else {
+                    $query->{$method}($column, $operator, $value);
+                }
             }
         }
     }
