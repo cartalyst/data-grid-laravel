@@ -11,6 +11,12 @@ We do not give estimated times for completion on `Accepted` Proposals.
 
 ---
 
+### v1.0.1 - 2017-03-22
+
+`FIXED`
+
+- A bug affecting filtering when using PostgreSQL.
+
 ### v1.0.0 - 2017-02-20
 
 - Initial Release
