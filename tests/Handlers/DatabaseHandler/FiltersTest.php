@@ -306,6 +306,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
             return true;
         }))->times(5);
 
+        $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
+
         $handler->prepareFilters();
     }
 
@@ -367,6 +369,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
             return true;
         }))->times(5);
 
+        $query->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
+
         $handler->prepareFilters();
     }
 
@@ -378,6 +382,7 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $query = m::mock('Illuminate\Database\Query\Builder');
         $query->shouldReceive('orWhere')->with('foo', 'like', '%Global Filter%')->once();
         $query->shouldReceive('orWhere')->with('bar.baz', 'like', '%Global Filter%')->once();
+        $data->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
         $handler->globalFilter($query, 'like', 'Global Filter');
     }
@@ -426,6 +431,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
 
             return true;
         }))->times(6);
+
+        $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
         $handler->prepareFilters();
     }
