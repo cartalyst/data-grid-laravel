@@ -424,6 +424,19 @@ class DatabaseHandler extends AbstractHandler
 
         // If the sort column doesn't exist, something has gone wrong
         if ($key === false) {
+            // Attempt to find the column in the query builder
+            $data = $this->data;
+
+            if (method_exists($data, 'getQuery')) {
+                $data = $data->getQuery();
+            }
+
+            foreach ((array) $data->columns as $_column) {
+                if (strpos((string) $_column, $column) !== false) {
+                    return $column;
+                }
+            }
+
             throw new RuntimeException("Sort column [{$column}] does not exist in data.");
         }
 
