@@ -11,6 +11,12 @@ We do not give estimated times for completion on `Accepted` Proposals.
 
 ---
 
+### v1.0.2 - 2017-03-29
+
+`FIXED`
+
+- A bug affecting sorting by manually added columns.
+
 ### v1.0.1 - 2017-03-22
 
 `FIXED`
