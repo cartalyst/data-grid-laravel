@@ -293,10 +293,10 @@ class GeneralTest extends PHPUnit_Framework_TestCase
 
         $query = $handler->getData();
 
-        $query->shouldReceive('where')->with('foo', 'like', '%Filter 1%')->once();
-        $query->shouldReceive('where')->with('bar.baz', 'like', '%Filter 2%')->once();
-        $query->shouldReceive('whereNull')->with('baz')->once();
-        $query->shouldReceive('whereNotNull')->with('bar')->once();
+        $query->getQuery()->shouldReceive('where')->with('foo', 'like', '%Filter 1%')->once();
+        $query->getQuery()->shouldReceive('where')->with('bar.baz', 'like', '%Filter 2%')->once();
+        $query->getQuery()->shouldReceive('whereNull')->with('baz')->once();
+        $query->getQuery()->shouldReceive('whereNotNull')->with('bar')->once();
         $query->getQuery()->shouldReceive('orWhere')->with('foo', 'like', '%Filter 3%')->once();
         $query->getQuery()->shouldReceive('orWhere')->with('bar.baz', 'like', '%Filter 3%')->once();
 
@@ -418,12 +418,12 @@ class GeneralTest extends PHPUnit_Framework_TestCase
 
         $query = $handler->getData();
 
-        $query->shouldReceive('where')->with('foo', '>=', '5')->once();
-        $query->shouldReceive('where')->with('foo', '<=', '20')->once();
-        $query->shouldReceive('where')->with('foo', '<>', '10')->once();
-        $query->shouldReceive('where')->with('foo', '!=', '11')->once();
-        $query->shouldReceive('where')->with('bar.baz', '>', '3')->once();
-        $query->shouldReceive('where')->with('bar.baz', '<', '5')->once();
+        $query->getQuery()->shouldReceive('where')->with('foo', '>=', '5')->once();
+        $query->getQuery()->shouldReceive('where')->with('foo', '<=', '20')->once();
+        $query->getQuery()->shouldReceive('where')->with('foo', '<>', '10')->once();
+        $query->getQuery()->shouldReceive('where')->with('foo', '!=', '11')->once();
+        $query->getQuery()->shouldReceive('where')->with('bar.baz', '>', '3')->once();
+        $query->getQuery()->shouldReceive('where')->with('bar.baz', '<', '5')->once();
 
         $query->shouldReceive('whereNested')->with(m::on(function ($f) use ($query) {
             $f($query->getQuery());
@@ -467,7 +467,7 @@ class GeneralTest extends PHPUnit_Framework_TestCase
 
         $query = $handler->getData();
 
-        $query->shouldReceive('whereHas')->once();
+        $query->getQuery()->shouldReceive('whereHas')->once();
         $query->shouldReceive('whereNested')->with(m::on(function ($f) use ($query) {
             $f($query->getQuery());
 
@@ -501,7 +501,7 @@ class GeneralTest extends PHPUnit_Framework_TestCase
         $query = $handler->getData();
 
         $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
-        $query->shouldReceive('whereRaw')->with('foo regex ?', ['^B.*?\sCorlett$'])->once();
+        $query->getQuery()->shouldReceive('whereRaw')->with('foo regex ?', ['^B.*?\sCorlett$'])->once();
         $query->shouldReceive('whereNested')->with(m::on(function ($f) use ($query) {
             $f($query->getQuery());
 
