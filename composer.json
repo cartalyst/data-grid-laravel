@@ -1,6 +1,6 @@
 {
     "name": "cartalyst/data-grid-laravel",
-    "description": "Laravel integration for the Cartalyst Data Grid 4.0 package.",
+    "description": "Laravel integration for the Cartalyst Data Grid package.",
     "keywords": [
         "php",
         "cartalyst",
@@ -28,8 +28,8 @@
     ],
     "require": {
         "php": "^7.2",
-        "cartalyst/data-grid": "^4.0",
-        "illuminate/support": "^5.1"
+        "cartalyst/data-grid": "^5.0",
+        "illuminate/support": "^6.0"
     },
     "require-dev": {
         "cartalyst/attributes": "^2.0",
