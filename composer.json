@@ -33,6 +33,7 @@
     },
     "require-dev": {
         "cartalyst/attributes": "^2.0",
+        "cartalyst/php-cs-fixer-config": "^1.0",
         "mockery/mockery": "^0.9",
         "phpunit/phpunit": "^5.7"
     },
