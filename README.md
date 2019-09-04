@@ -1,41 +1,29 @@
 # Data Grid Laravel
 
-[![Build Status](https://travis-ci.com/cartalyst/data-grid-laravel.svg?token=98Zt8zYdwyheTKqziswS&branch=1.0)](https://travis-ci.com/cartalyst/data-grid-laravel)
+[![Build Status][icon-travis]][link-travis]
 
-Laravel 5.3+ integration for the [Cartalyst Data Grid 4.0](https://cartalyst.com/manual/data-grid/4.0) package.
-
-The package requires PHP 5.6.4+ and follows the FIG standards PSR-1, PSR-2 and PSR-4 to ensure a high level of interoperability between shared PHP and is unit-tested.
+Laravel 6+ integration for the [Cartalyst Data Grid 5.0](https://cartalyst.com/manual/data-grid/5.0) package.
 
 Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](LICENSE). Code well, rock on.
 
+## Version Matrix
+
+Version | Data Grid | Laravel   | PHP Version
+------- | --------- | --------- | ------------
+1.x     | 4.x       | 5.3 - 5.8 | >= 5.6.4
+
 ## Documentation
 
-Reader-friendly Documentation can be found [here](https://cartalyst.com/manual/data-grid-laravel/1.0).
+Reader-friendly documentation can be found [here][link-docs].
 
-Raw files can be found via this projects docs/version branch.
+Using the package, but you're stuck? Found a bug? Have a question or suggestion for improving this package? Feel free to create an issue on GitHub, we'll try to address it as soon as possible.
 
-- [1.0](https://github.com/cartalyst/data-grid/tree/docs/1.0)
+## Contributing
 
-## Change Log
+Thank you for your interest, here are some of the many ways to contribute.
 
-Important versions listed below. Refer to the [Change Log](CHANGELOG.md) for a full history of the project.
-
-- [1.0](CHANGELOG.md) - 2017-02-20
-
-## Support
-
-The following support channels can be used for contact.
-
-- [Twitter](https://twitter.com/cartalyst)
-- [Email](mailto:help@cartalyst.com)
-
-Bug reports, feature requests, and pull requests can be submitted by following our [Contribution Guide](CONTRIBUTING.md).
-
-## Contributing & Protocols
-
-- [Versioning](CONTRIBUTING.md#versioning)
-- [Coding Standards](CONTRIBUTING.md#coding-standards)
-- [Pull Requests](CONTRIBUTING.md#pull-requests)
+- Check out our [contributing guide](/.github/CONTRIBUTING.md)
+- Look at our [code of conduct](/.github/CODE_OF_CONDUCT.md)
 
 ## Security
 
@@ -45,4 +33,7 @@ If you discover any security related issues, please email help@cartalyst.com ins
 
 This software is released under the [Cartalyst PSL](LICENSE) License.
 
-© 2011-2017 Cartalyst LLC, All rights reserved.
+[link-docs]:   https://cartalyst.com/manual/data-grid-laravel
+[link-travis]: https://travis-ci.com/cartalyst/data-grid-laravel
+
+[icon-travis]: https://travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=1.0
