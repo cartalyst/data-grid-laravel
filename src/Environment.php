@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
@@ -38,7 +38,8 @@ class Environment
     /**
      * Constructor.
      *
-     * @param  \Cartalyst\DataGrid\Contracts\Provider  $requestProvider
+     * @param \Cartalyst\DataGrid\Contracts\Provider|null $requestProvider
+     *
      * @return void
      */
     public function __construct(Provider $requestProvider = null)
@@ -53,11 +54,12 @@ class Environment
     /**
      * Create a new data grid instance.
      *
-     * @param  \Cartalyst\DataGrid\Contracts\Handler  $dataHandler
-     * @param  mixed  $requestProvider
-     * @return \Cartalyst\DataGrid\DataGrid|mixed
+     * @param \Cartalyst\DataGrid\Contracts\Handler $dataHandler
+     * @param mixed                                 $requestProvider
+     *
+     * @return \Cartalyst\DataGrid\DataGrid
      */
-    public function make(Handler $dataHandler, $requestProvider = null)
+    public function make(Handler $dataHandler, $requestProvider = null): DataGrid
     {
         return DataGrid::make($dataHandler, $requestProvider ?: $this->requestProvider);
     }

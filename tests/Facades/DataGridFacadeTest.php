@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
@@ -18,10 +18,14 @@
  * @link       http://cartalyst.com
  */
 
+namespace Cartalyst\DataGrid\Laravel\Tests\Facades;
+
+use ReflectionClass;
+use PHPUnit\Framework\TestCase;
 use Illuminate\Support\Facades\Facade;
 use Cartalyst\DataGrid\Laravel\Facades\DataGrid;
 
-class DataGridFacadeTest extends PHPUnit_Framework_TestCase
+class DataGridFacadeTest extends TestCase
 {
     /**
      * Facade class.

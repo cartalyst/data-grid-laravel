@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
@@ -19,7 +19,6 @@
  */
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Default Method
@@ -56,5 +55,4 @@ return [
     */
 
     'throttle' => 100,
-
 ];

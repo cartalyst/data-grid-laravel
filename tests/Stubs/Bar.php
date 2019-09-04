@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE

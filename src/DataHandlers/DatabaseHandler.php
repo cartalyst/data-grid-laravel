@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
@@ -23,6 +23,7 @@ namespace Cartalyst\DataGrid\Laravel\DataHandlers;
 use RuntimeException;
 use InvalidArgumentException;
 use Cartalyst\Attributes\Value;
+use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Cartalyst\DataGrid\DataHandlers\AbstractHandler;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -85,7 +86,9 @@ class DatabaseHandler extends AbstractHandler
             $this->extractProperties($data);
 
             return $data->newQuery();
-        } elseif ($this->isEloquentQueryBuilder($data)) {
+        }
+
+        if ($this->isEloquentQueryBuilder($data)) {
             $this->extractProperties($data->getModel());
         }
 
@@ -95,32 +98,15 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function prepareTotalCount()
+    public function prepareTotalCount(): void
     {
         $this->parameters->set('total', $this->prepareCount());
     }
 
     /**
-     * Counts data records.
-     * Accounts for the bug #4306 on laravel/framework.
-     *
-     * @return int
-     */
-    protected function prepareCount()
-    {
-        $data = $this->data;
-
-        if ($this->isEloquentQueryBuilder($data) && empty($data->getQuery()->groups) || $this->isQueryBuilder($data) && empty($data->groups)) {
-            return $data->count();
-        }
-
-        return count($data->get());
-    }
-
-    /**
      * {@inheritdoc}
      */
-    public function prepareSelect()
+    public function prepareSelect(): void
     {
         // Fallback array to select
         $toSelect = [];
@@ -143,7 +129,7 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function prepareFilters()
+    public function prepareFilters(): void
     {
         $applied = [];
 
@@ -203,103 +189,16 @@ class DatabaseHandler extends AbstractHandler
     }
 
     /**
-     * Applies a filter to the given query.
-     *
-     * @param  mixed  $query
-     * @param  string  $column
-     * @param  string  $operator
-     * @param  mixed  $value
-     * @param  string  $method
-     * @return void
-     */
-    protected function applyFilter($query, $column, $operator, $value, $method = 'and')
-    {
-        $method = $method === 'and' ? 'where' : 'orWhere';
-
-        switch ($operator) {
-            case 'like':
-                if (strpos($value, '%') === false) {
-                    $value = "%{$value}%";
-                }
-
-                break;
-
-            case 'regex':
-
-                if ($this->supportsRegexFilters()) {
-                    $method .= 'Raw';
-                }
-
-                if ($this->getConnection() instanceof MySqlDatabaseConnection) {
-                    $query->{$method}("{$column} {$operator} ?", [$value]);
-                }
-
-                return;
-        }
-
-        if (strpos($column, '..') !== false) {
-            $cols = explode('..', $column);
-
-            $query->whereHas(reset($cols), function ($q) use ($cols, $operator, $value) {
-                $q->where(end($cols), $operator, $value);
-            });
-        } elseif (array_search($column, $this->attributes) !== false) {
-            $valueModel = new Value();
-
-            $matches = $valueModel->newQuery()
-                ->where('entity_type', $this->eavClass)
-                ->{$method}('value', $operator, $value)
-                ->get();
-
-            $key = $query->getModel()->getKeyName();
-
-            if (! $matches->toArray()) {
-                $query->where($key, null);
-            }
-
-            foreach ($matches as $match) {
-                $query->{$method}($key, $operator, $match->entity_id);
-            }
-        } else {
-            if ($value === '%null%') {
-                $query->whereNull($column);
-            } elseif ($value === '%not_null%') {
-                $query->whereNotNull($column);
-            } else {
-                if ($this->getConnection() instanceof PostgresDatabaseConnection) {
-                    $booleanMappings = [
-                        '%0%' => '%f%',
-                        '%1%' => '%t%',
-                    ];
-
-                    $query->{$method}(function($q) use ($column, $operator, $booleanMappings, $value) {
-                        $format = 'cast("%s" as text) %s \'%s\'';
-
-                        $q->whereRaw(sprintf($format, $column, $operator, $value));
-
-                        if (isset($booleanMappings[$value])) {
-                            $value = $booleanMappings[$value];
-
-                            $q->orWhereRaw(sprintf($format, $column, $operator, $value));
-                        }
-                    });
-                } else {
-                    $query->{$method}($column, $operator, $value);
-                }
-            }
-        }
-    }
-
-    /**
      * {@inheritdoc}
      */
-    public function supportsRegexFilters()
+    public function supportsRegexFilters(): bool
     {
         $regex = false;
 
         switch ($connection = $this->getConnection()) {
             case $connection instanceof MySqlDatabaseConnection:
                 $regex = true;
+
                 break;
         }
 
@@ -307,32 +206,17 @@ class DatabaseHandler extends AbstractHandler
     }
 
     /**
-     * Returns the connection associated with the handler's data set.
-     *
-     * @return \Illuminate\Database\ConnectionInterface
-     */
-    protected function getConnection()
-    {
-        $data = $this->data;
-
-        if ($this->isEloquentQueryBuilder($data)) {
-            $data = $data->getQuery();
-        }
-
-        return $data->getConnection();
-    }
-
-    /**
      * Applies a global filter across all registered columns. The
      * filter is applied in a "or where" fashion, where
      * the value can be matched across any column.
      *
-     * @param  \Illuminate\Database\Query\Builder  $nestedQuery
-     * @param  string  $operator
-     * @param  string  $value
+     * @param \Illuminate\Database\Query\Builder $nestedQuery
+     * @param string                             $operator
+     * @param string                             $value
+     *
      * @return void
      */
-    public function globalFilter(QueryBuilder $nestedQuery, $operator, $value)
+    public function globalFilter(QueryBuilder $nestedQuery, string $operator, string $value): void
     {
         foreach ($this->settings->get('columns') as $key => $_value) {
             if (is_numeric($key)) {
@@ -346,11 +230,11 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function prepareFilteredCount()
+    public function prepareFilteredCount(): void
     {
         $total = $this->parameters->get('total');
 
-        $filters = $this->parameters->get('filters');
+        $filters = $this->parameters->get('filters', []);
 
         $filtered = count($filters) ? $this->prepareCount() : $total;
 
@@ -360,7 +244,7 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function prepareSort()
+    public function prepareSort(): void
     {
         $data = $this->data;
 
@@ -374,6 +258,7 @@ class DatabaseHandler extends AbstractHandler
         if (empty($requestedSort) && $this->settings->has('sorts')) {
             // Account for multiple sorts
             $sorts = $this->settings->get('sorts');
+
             $sorts = array_key_exists('column', $sorts) ? [$sorts] : $sorts;
         } else {
             $sorts = $requestedSort ?: [];
@@ -412,10 +297,10 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function calculateSortColumn($column = null)
+    public function calculateSortColumn(string $column = null): ?string
     {
         if (! $column) {
-            return;
+            return null;
         }
 
         $index = array_search($column, $this->settings->get('columns'));
@@ -452,7 +337,7 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function preparePagination($paginate = true)
+    public function preparePagination(bool $paginate = true): void
     {
         $filteredCount = $this->parameters->get('filtered');
 
@@ -462,7 +347,7 @@ class DatabaseHandler extends AbstractHandler
         }
 
         if (! $paginate) {
-            return $filteredCount;
+            return;
         }
 
         $page      = $this->requestProvider->getPage() ?: $this->parameters->get('page');
@@ -499,12 +384,134 @@ class DatabaseHandler extends AbstractHandler
     }
 
     /**
-     * Extracts properties.
+     * Counts data records.
+     * Accounts for the bug #4306 on laravel/framework.
      *
-     * @param  array  $data
+     * @return int
+     */
+    protected function prepareCount(): int
+    {
+        $data = $this->data;
+
+        if ($this->isEloquentQueryBuilder($data) && empty($data->getQuery()->groups) || $this->isQueryBuilder($data) && empty($data->groups)) {
+            return $data->count();
+        }
+
+        return count($data->get());
+    }
+
+    /**
+     * Applies a filter to the given query.
+     *
+     * @param mixed  $query
+     * @param string $column
+     * @param string $operator
+     * @param mixed  $value
+     * @param string $method
+     *
      * @return void
      */
-    protected function extractProperties($data)
+    protected function applyFilter($query, $column, $operator, $value, $method = 'and'): void
+    {
+        $method = $method === 'and' ? 'where' : 'orWhere';
+
+        switch ($operator) {
+            case 'like':
+                if (strpos($value, '%') === false) {
+                    $value = "%{$value}%";
+                }
+
+                break;
+            case 'regex':
+                if ($this->supportsRegexFilters()) {
+                    $method .= 'Raw';
+                }
+
+                if ($this->getConnection() instanceof MySqlDatabaseConnection) {
+                    $query->{$method}("{$column} {$operator} ?", [$value]);
+                }
+
+                return;
+        }
+
+        if (strpos($column, '..') !== false) {
+            $cols = explode('..', $column);
+
+            $query->whereHas(reset($cols), function ($q) use ($cols, $operator, $value) {
+                $q->where(end($cols), $operator, $value);
+            });
+        } elseif (array_search($column, $this->attributes) !== false) {
+            $valueModel = new Value();
+
+            $matches = $valueModel->newQuery()
+                ->where('entity_type', $this->eavClass)
+                ->{$method}('value', $operator, $value)
+                ->get()
+            ;
+
+            $key = $query->getModel()->getKeyName();
+
+            if (! $matches->toArray()) {
+                $query->where($key, null);
+            }
+
+            foreach ($matches as $match) {
+                $query->{$method}($key, $operator, $match->entity_id);
+            }
+        } else {
+            if ($value === '%null%') {
+                $query->whereNull($column);
+            } elseif ($value === '%not_null%') {
+                $query->whereNotNull($column);
+            } else {
+                if ($this->getConnection() instanceof PostgresDatabaseConnection) {
+                    $booleanMappings = [
+                        '%0%' => '%f%',
+                        '%1%' => '%t%',
+                    ];
+
+                    $query->{$method}(function ($q) use ($column, $operator, $booleanMappings, $value) {
+                        $format = 'cast("%s" as text) %s \'%s\'';
+
+                        $q->whereRaw(sprintf($format, $column, $operator, $value));
+
+                        if (isset($booleanMappings[$value])) {
+                            $value = $booleanMappings[$value];
+
+                            $q->orWhereRaw(sprintf($format, $column, $operator, $value));
+                        }
+                    });
+                } else {
+                    $query->{$method}($column, $operator, $value);
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the connection associated with the handler's data set.
+     *
+     * @return \Illuminate\Database\ConnectionInterface
+     */
+    protected function getConnection(): ConnectionInterface
+    {
+        $data = $this->data;
+
+        if ($this->isEloquentQueryBuilder($data)) {
+            $data = $data->getQuery();
+        }
+
+        return $data->getConnection();
+    }
+
+    /**
+     * Extracts properties.
+     *
+     * @param mixed $data
+     *
+     * @return void
+     */
+    protected function extractProperties($data): void
     {
         $this->appends = array_keys($data->attributesToArray());
 
@@ -520,10 +527,11 @@ class DatabaseHandler extends AbstractHandler
     /**
      * Determines if the given object is an instance of the eloquent model.
      *
-     * @param  mixed  $object
+     * @param mixed $object
+     *
      * @return bool
      */
-    private function isEloquentModel($object)
+    protected function isEloquentModel($object): bool
     {
         return $object instanceof EloquentModel;
     }
@@ -532,10 +540,11 @@ class DatabaseHandler extends AbstractHandler
      * Determines if the given object is an instance
      * of the eloquent has many relationship.
      *
-     * @param  mixed  $object
+     * @param mixed $object
+     *
      * @return bool
      */
-    private function isHasMany($object)
+    protected function isHasMany($object): bool
     {
         return $object instanceof HasMany;
     }
@@ -543,10 +552,11 @@ class DatabaseHandler extends AbstractHandler
     /**
      * Determines if the given object is an instance of the query builder.
      *
-     * @param  mixed  $object
+     * @param mixed $object
+     *
      * @return bool
      */
-    private function isQueryBuilder($object)
+    protected function isQueryBuilder($object): bool
     {
         return $object instanceof QueryBuilder;
     }
@@ -555,10 +565,11 @@ class DatabaseHandler extends AbstractHandler
      * Determines if the given object is an instance of
      * the eloquent belongs to many relationship.
      *
-     * @param  mixed  $object
+     * @param mixed $object
+     *
      * @return bool
      */
-    private function isBelongsToMany($object)
+    protected function isBelongsToMany($object): bool
     {
         return $object instanceof BelongsToMany;
     }
@@ -567,10 +578,11 @@ class DatabaseHandler extends AbstractHandler
      * Determines if the given object is an instance
      * of the eloquent query builder.
      *
-     * @param  mixed  $object
+     * @param mixed $object
+     *
      * @return bool
      */
-    private function isEloquentQueryBuilder($object)
+    protected function isEloquentQueryBuilder($object): bool
     {
         return $object instanceof EloquentQueryBuilder;
     }

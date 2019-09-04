@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
@@ -22,20 +22,22 @@ namespace Cartalyst\DataGrid\Laravel\Tests\Handlers\DatabaseHandler;
 
 use stdClass;
 use Mockery as m;
-use PHPUnit_Framework_TestCase;
+use RuntimeException;
+use InvalidArgumentException;
+use PHPUnit\Framework\TestCase;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Cartalyst\DataGrid\Laravel\Tests\Stubs\Bar;
 use Cartalyst\DataGrid\Laravel\Tests\Stubs\Foo;
 use Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler as Handler;
 
-class FiltersTest extends PHPUnit_Framework_TestCase
+class FiltersTest extends TestCase
 {
     /**
-     * Close mockery.
-     *
-     * @return void
+     * {@inheritdoc}
      */
-    public function tearDown()
+    protected function tearDown(): void
     {
         m::close();
     }
@@ -45,9 +47,7 @@ class FiltersTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockModel(), $this->getSettings());
 
-        $handler->getData()->shouldReceive('get');
-
-        $handler->hydrate();
+        $this->assertCount(0, $handler->getResults());
     }
 
     /** @test */
@@ -55,36 +55,24 @@ class FiltersTest extends PHPUnit_Framework_TestCase
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $handler->getData()->shouldReceive('get');
-
-        $handler->hydrate();
+        $this->assertCount(0, $handler->getResults());
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
-    public function it_will_fail_when_creating_an_instance_with_an_invalid_object()
-    {
-        $data = m::mock('InvalidObject');
-
-        new Handler($data, $this->getSettings());
-    }
-
-    public function testPreparingSelect()
+    /** @test */
+    public function it_can_prepare_the_select()
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
-        $handler->getData()->shouldReceive('addSelect')
-            ->with([
-                'foo',
-                'bar.baz as qux',
-            ])
-            ->once();
+        $handler->getData()->shouldReceive('addSelect')->once();
+        $handler->getData()->shouldReceive('all')->once()->andReturn([]);
 
         $handler->prepareSelect();
+
+        $this->assertEmpty($handler->getData()->all());
     }
 
-    public function testPreparingCount()
+    /** @test */
+    public function it_can_prepare_the_total_count()
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
@@ -93,7 +81,6 @@ class FiltersTest extends PHPUnit_Framework_TestCase
             'foo',
             'bar.baz as qux',
         ])->once();
-
         $query->shouldReceive('get')->once();
         $query->shouldReceive('count')->once()->andReturn(6);
 
@@ -101,34 +88,31 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $handler->hydrate();
         $handler->prepareTotalCount();
 
-        $this->assertEquals($handler->getParameters()->get('total'), 6);
+        $this->assertSame(6, $handler->getParameters()->get('total'));
     }
 
     public function testGettingSimpleFilters()
     {
-        $data     = $this->getMockEloquentBuilder();
+        $data = $this->getMockEloquentBuilder();
+
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            [$data, $this->getSettings()]);
+        $provider->shouldReceive('getDefaultMethod');
+        $provider->shouldReceive('getDefaultThrottle');
+        $provider->shouldReceive('getDefaultThreshold');
+        $provider->shouldReceive('getMethod')->once()->andReturn('single');
+        $provider->shouldReceive('getThreshold')->once();
+        $provider->shouldReceive('getThrottle')->once();
+        $provider->shouldReceive('getFilters')->once()->andReturn([
+            ['foo' => 'Filter 1'],
+            ['qux' => 'Filter 2'],
+            'Filter 3',
+        ]);
 
-        $provider
-            ->shouldReceive('getDefaultMethod')
-            ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
 
-        $provider
-            ->shouldReceive('getMethod')->once()->andReturn('single')
-            ->shouldReceive('getThreshold')->once()
-            ->shouldReceive('getThrottle')->once()
-            ->shouldReceive('getFilters')->once()->andReturn([
-                    ['foo' => 'Filter 1'],
-                    ['qux' => 'Filter 2'],
-                    'Filter 3',
-                ]
-            );
-
+        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',[
+            $data, $this->getSettings(),
+        ]);
         $handler->setRequestProvider($provider);
-
         $handler->shouldReceive('supportsRegexFilters')->andReturn(false);
 
         $expectedColumn = [
@@ -151,11 +135,13 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         ];
 
         $actual = $handler->getFilters();
+
         $this->assertCount(2, $actual);
+
         list($actualColumn, $actualGlobal) = $actual;
 
-        $this->assertEquals($actualColumn, $expectedColumn);
-        $this->assertEquals($actualGlobal, $expectedGlobal);
+        $this->assertSame($actualColumn, $expectedColumn);
+        $this->assertSame($actualGlobal, $expectedGlobal);
     }
 
     public function testGettingNullFilters()
@@ -168,7 +154,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -208,8 +195,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $this->assertCount(2, $actual);
         list($actualColumn, $actualGlobal) = $actual;
 
-        $this->assertEquals($actualColumn, $expectedColumn);
-        $this->assertEquals($actualGlobal, $expectedGlobal);
+        $this->assertSame($actualColumn, $expectedColumn);
+        $this->assertSame($actualGlobal, $expectedGlobal);
     }
 
     public function testGettingComplexFilters()
@@ -222,7 +209,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -259,7 +247,7 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $this->assertCount(2, $actual);
         list($actual) = $actual;
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     public function testSettingUpColumnFilters()
@@ -272,7 +260,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -321,15 +310,18 @@ class FiltersTest extends PHPUnit_Framework_TestCase
 
         $model->shouldReceive('availableAttributes')
             ->once()
-            ->andReturn($collection);
+            ->andReturn($collection)
+        ;
 
         $model->shouldReceive('attributesToArray')
             ->once()
-            ->andReturn([]);
+            ->andReturn([])
+        ;
 
         $model->shouldReceive('newQuery')
             ->once()
-            ->andReturn($query = m::mock('Illuminate\Database\Query\Builder'));
+            ->andReturn($query = m::mock(Builder::class))
+        ;
 
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
             [$model, $this->getSettings()]);
@@ -337,7 +329,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -379,7 +372,7 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $data    = $this->getMockEloquentBuilder();
         $handler = new Handler($data, $this->getSettings());
 
-        $query = m::mock('Illuminate\Database\Query\Builder');
+        $query = m::mock(Builder::class);
         $query->shouldReceive('orWhere')->with('foo', 'like', '%Global Filter%')->once();
         $query->shouldReceive('orWhere')->with('bar.baz', 'like', '%Global Filter%')->once();
         $data->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
@@ -397,7 +390,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -447,7 +441,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -488,7 +483,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -516,27 +512,23 @@ class FiltersTest extends PHPUnit_Framework_TestCase
 
     public function testFilteredCount()
     {
-        $data     = $this->getMockEloquentBuilder();
+        $data = $this->getMockEloquentBuilder();
+
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler  = new Handler($data, $this->getSettings());
+        $provider->shouldReceive('getDefaultMethod');
+        $provider->shouldReceive('getDefaultThrottle');
+        $provider->shouldReceive('getDefaultThreshold');
+        $provider->shouldReceive('getMethod');
+        $provider->shouldReceive('getThreshold');
+        $provider->shouldReceive('getThrottle');
 
-        $provider
-            ->shouldReceive('getDefaultMethod')
-            ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
-
-        $provider
-            ->shouldReceive('getMethod')
-            ->shouldReceive('getThreshold')
-            ->shouldReceive('getThrottle');
-
+        $handler = new Handler($data, $this->getSettings());
         $handler->setRequestProvider($provider);
-
         $handler->getData()->shouldReceive('count')->once()->andReturn(5);
-
         $handler->prepareTotalCount();
         $handler->prepareFilteredCount();
-        $this->assertEquals(5, $handler->getParameters()->get('filtered'));
+
+        $this->assertSame(5, $handler->getParameters()->get('filtered'));
     }
 
     public function testSortingWhenNoOrdersArePresent()
@@ -548,38 +540,14 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
             ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
             ->shouldReceive('getSort')->once();
-
-        $handler->setRequestProvider($provider);
-
-        $handler->prepareSort();
-    }
-
-    /**
-     * @expectedException \RuntimeException
-     */
-    public function testSortingInvalidColumn()
-    {
-        $data     = $this->getMockEloquentBuilder();
-        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler  = new Handler($data, $this->getSettings());
-
-        $provider
-            ->shouldReceive('getDefaultMethod')
-            ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
-
-        $provider
-            ->shouldReceive('getMethod')
-            ->shouldReceive('getThreshold')
-            ->shouldReceive('getThrottle')
-            ->shouldReceive('getSort')->once()->andReturn([['column' => 'foobar']]);
 
         $handler->setRequestProvider($provider);
 
@@ -595,7 +563,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -623,8 +592,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $results = $handler->getResults();
 
         // Validate the orders are correct
-        $this->assertEquals($expected[0], $results[0]);
-        $this->assertEquals($expected[1], $results[1]);
+        $this->assertSame($expected[0], $results[0]);
+        $this->assertSame($expected[1], $results[1]);
     }
 
     public function testTransform()
@@ -658,14 +627,14 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $results = $handler->toArray();
 
         // Validate the orders are correct
-        $this->assertEquals($validated[0], $results[0]);
-        $this->assertEquals($validated[1], $results[1]);
+        $this->assertSame($validated[0], $results[0]);
+        $this->assertSame($validated[1], $results[1]);
     }
 
     public function testSortingHasMany()
     {
         $data = m::mock('Illuminate\Database\Eloquent\Relations\HasMany');
-        $data->shouldReceive('getQuery')->once()->andReturn($builder = m::mock('Illuminate\Database\Query\Builder'));
+        $data->shouldReceive('getQuery')->once()->andReturn($builder = m::mock(Builder::class));
         $builder->shouldReceive('orderBy')->once();
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
@@ -674,7 +643,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getMethod')
@@ -685,16 +655,6 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $handler->setRequestProvider($provider);
 
         $handler->prepareSort();
-    }
-
-    /**
-     * @expectedException InvalidArgumentException
-     */
-    public function testCalculatingPaginationThrowsExceptionIfRequestedPagesIsZero()
-    {
-        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
-
-        $handler->calculatePagination(10, 'single', 0, 0);
     }
 
     public function testCalculatingPagination1()
@@ -786,7 +746,8 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $provider
             ->shouldReceive('getDefaultMethod')
             ->shouldReceive('getDefaultThrottle')
-            ->shouldReceive('getDefaultThreshold');
+            ->shouldReceive('getDefaultThreshold')
+        ;
 
         $provider
             ->shouldReceive('getThreshold')->andReturn(100)
@@ -858,12 +819,14 @@ class FiltersTest extends PHPUnit_Framework_TestCase
 
         $handler->preparePagination();
 
-        $this->assertSame(2, $handler->getParameters()->get('previousPage'));
         $this->assertNull($handler->getParameters()->get('nextPage'));
+
+        $this->assertSame(2, $handler->getParameters()->get('previousPage'));
         $this->assertSame(3, $handler->getParameters()->get('pages'));
     }
 
-    public function testHydrating()
+    /** @test */
+    public function it_can_hydrate_the_results_1()
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
@@ -886,39 +849,16 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         ];
 
         $this->assertCount(count($expected), $results = $handler->toArray());
-        $this->assertEquals($expected, $results);
+        $this->assertSame($expected, $results);
 
         foreach ($results as $index => $result) {
-            $this->assertTrue(array_key_exists($index, $results));
-            $this->assertEquals($expected[$index], $result);
+            $this->assertArrayHasKey($index, $results);
+            $this->assertSame($expected[$index], $result);
         }
     }
 
-    public function testHydratingMaxResults()
-    {
-        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
-
-        $results = [
-            $result1 = new stdClass(),
-        ];
-
-        $result1->foo = 'bar';
-        $result1->baz = 'qux';
-
-        $handler->getData()->shouldReceive('get')->andReturn($results);
-        $handler->getData()->shouldReceive('limit')->once()->with(1);
-
-        $handler->hydrate(1);
-
-        $expected = [
-            ['foo' => 'bar', 'baz' => 'qux'],
-        ];
-
-        $this->assertCount(count($expected), $results = $handler->toArray());
-        $this->assertEquals($expected, $results);
-    }
-
-    public function testHydrating1()
+    /** @test */
+    public function it_can_hydrate_the_results_2()
     {
         $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
 
@@ -940,26 +880,98 @@ class FiltersTest extends PHPUnit_Framework_TestCase
         $results = $handler->toArray();
 
         // Validate the orders are correct
-        $this->assertEquals($expected[0]->toArray(), $results[0]);
-        $this->assertEquals($expected[1]->toArray(), $results[1]);
+        $this->assertSame($expected[0]->toArray(), $results[0]);
+        $this->assertSame($expected[1]->toArray(), $results[1]);
+    }
+
+    /** @test */
+    public function it_can_hydrate_with_max_results()
+    {
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
+
+        $results = [
+            $result1 = new stdClass(),
+        ];
+
+        $result1->foo = 'bar';
+        $result1->baz = 'qux';
+
+        $handler->getData()->shouldReceive('get')->andReturn($results);
+        $handler->getData()->shouldReceive('limit')->once()->with(1);
+
+        $handler->hydrate(1);
+
+        $expected = [
+            ['foo' => 'bar', 'baz' => 'qux'],
+        ];
+
+        $this->assertCount(1, $results = $handler->toArray());
+
+        $this->assertSame($expected, $results);
+    }
+
+    /** @test */
+    public function an_exception_will_be_thrown_when_creating_an_instance_with_an_invalid_object()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid data source passed to the database handler. Must be an Eloquent model / query / valid relationship, or a database query.');
+
+        $data = m::mock('InvalidObject');
+
+        new Handler($data, $this->getSettings());
+    }
+
+    /** @test */
+    public function an_exception_will_be_thrown_if_the_requested_page_is_zero()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid throttle of [0], must be [1] or more.');
+
+        $handler = new Handler($this->getMockEloquentBuilder(), $this->getSettings());
+
+        $handler->calculatePagination(10, 'single', 0, 0);
+    }
+
+    /** @test */
+    public function an_exception_will_be_thrown_when_sorting_with_a_non_existing_column()
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Sort column [foobar] does not exist in data.');
+
+        $data = $this->getMockEloquentBuilder();
+
+        $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
+        $provider->shouldReceive('getDefaultMethod');
+        $provider->shouldReceive('getDefaultThrottle');
+        $provider->shouldReceive('getDefaultThreshold');
+        $provider->shouldReceive('getMethod');
+        $provider->shouldReceive('getThreshold');
+        $provider->shouldReceive('getThrottle');
+        $provider->shouldReceive('getSort')->once()->andReturn([['column' => 'foobar']]);
+
+        $handler = new Handler($data, $this->getSettings());
+        $handler->setRequestProvider($provider);
+
+        $handler->prepareSort();
     }
 
     protected function getMockEloquentBuilder()
     {
-        $builder = m::mock('Illuminate\Database\Eloquent\Builder');
-        $builder->shouldReceive('getModel')->once()->andReturn($model = m::mock('Illuminate\Database\Eloquent\Model'));
-        $builder->shouldReceive('getQuery')->andReturn(m::mock('Illuminate\Database\Query\Builder'));
-
+        $model = m::mock(Model::class);
         $model->shouldReceive('attributesToArray')->once()->andReturn([]);
+
+        $builder = m::mock('Illuminate\Database\Eloquent\Builder');
+        $builder->shouldReceive('getModel')->once()->andReturn($model);
+        $builder->shouldReceive('getQuery')->andReturn(m::mock(Builder::class));
 
         return $builder;
     }
 
     protected function getMockModel()
     {
-        $model = m::mock('Illuminate\Database\Eloquent\Model');
+        $model = m::mock(Model::class);
         $model->shouldReceive('attributesToArray')->once()->andReturn([]);
-        $model->shouldReceive('newQuery')->once()->andReturn(m::mock('Illuminate\Database\Query\Builder'));
+        $model->shouldReceive('newQuery')->once()->andReturn(m::mock(Builder::class));
 
         return $model;
     }

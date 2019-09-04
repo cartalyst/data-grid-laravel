@@ -1,6 +1,6 @@
 <?php
 
-/**
+/*
  * Part of the Data Grid Laravel package.
  *
  * NOTICE OF LICENSE
@@ -20,6 +20,7 @@
 
 namespace Cartalyst\DataGrid\Laravel;
 
+use Cartalyst\DataGrid\DataGrid;
 use Illuminate\Support\ServiceProvider;
 use Cartalyst\DataGrid\Providers\RequestProvider;
 
@@ -97,14 +98,15 @@ class DataGridServiceProvider extends ServiceProvider
             return new Environment($app['datagrid.request']);
         });
 
-        $this->app->alias('datagrid', 'Cartalyst\DataGrid\DataGrid');
+        $this->app->alias('datagrid', DataGrid::class);
     }
 
     /**
      * Returns the full path to the given resource.
      *
-     * @param  string  $resource
-     * @param  bool  $mainPackage
+     * @param string $resource
+     * @param bool   $mainPackage
+     *
      * @return string
      */
     protected function getResourcePath($resource, $mainPackage = false)
