@@ -10,6 +10,7 @@ Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](LICENSE). Code well, ro
 
 Version | Data Grid | Laravel   | PHP Version
 ------- | --------- | --------- | ------------
+2.x     | 5.x       | 6.x       | >= 7.2
 1.x     | 4.x       | 5.3 - 5.8 | >= 5.6.4
 
 ## Documentation
@@ -36,4 +37,4 @@ This software is released under the [Cartalyst PSL](LICENSE) License.
 [link-docs]:   https://cartalyst.com/manual/data-grid-laravel
 [link-travis]: https://travis-ci.com/cartalyst/data-grid-laravel
 
-[icon-travis]: https://travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=1.0
+[icon-travis]: https://travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=2.0
