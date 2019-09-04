@@ -1,15 +1,4 @@
-# Change Log
-
-This project follows [Semantic Versioning](CONTRIBUTING.md).
-
-## Proposals
-
-We do not give estimated times for completion on `Accepted` Proposals.
-
-- [Accepted](https://github.com/cartalyst/data-grid-laravel/labels/Accepted)
-- [Rejected](https://github.com/cartalyst/data-grid-laravel/labels/Rejected)
-
----
+# Changelog
 
 ### v1.0.4 - 2017-09-13
 
