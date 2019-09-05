@@ -297,7 +297,7 @@ class FiltersTest extends TestCase
 
         $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testSettingUpAttributeFilters()
@@ -364,7 +364,7 @@ class FiltersTest extends TestCase
 
         $query->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testGlobalFilterOnQuery()
@@ -377,7 +377,7 @@ class FiltersTest extends TestCase
         $query->shouldReceive('orWhere')->with('bar.baz', 'like', '%Global Filter%')->once();
         $data->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
-        $handler->globalFilter($query, 'like', 'Global Filter');
+        $this->assertNull($handler->globalFilter($query, 'like', 'Global Filter'));
     }
 
     public function testOperatorFilters()
@@ -428,7 +428,7 @@ class FiltersTest extends TestCase
 
         $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testNestedFilters()
@@ -471,7 +471,7 @@ class FiltersTest extends TestCase
             return true;
         }))->once();
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testRegexFilters()
@@ -507,7 +507,7 @@ class FiltersTest extends TestCase
             return true;
         }))->once();
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testFilteredCount()
@@ -551,7 +551,7 @@ class FiltersTest extends TestCase
 
         $handler->setRequestProvider($provider);
 
-        $handler->prepareSort();
+        $this->assertNull($handler->prepareSort());
     }
 
     public function testSortingByNestedResources3()
@@ -654,7 +654,7 @@ class FiltersTest extends TestCase
 
         $handler->setRequestProvider($provider);
 
-        $handler->prepareSort();
+        $this->assertNull($handler->prepareSort());
     }
 
     public function testCalculatingPagination1()
@@ -733,7 +733,7 @@ class FiltersTest extends TestCase
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
             [$this->getMockEloquentBuilder(), $this->getSettings()]);
 
-        $handler->preparePagination();
+        $this->assertNull($handler->preparePagination());
     }
 
     public function testSettingUpPaginationWithOnePage()

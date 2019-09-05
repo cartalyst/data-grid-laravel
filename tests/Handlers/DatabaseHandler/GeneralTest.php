@@ -47,7 +47,7 @@ class GeneralTest extends TestCase
 
         $handler->getData()->shouldReceive('get');
 
-        $handler->hydrate();
+        $this->assertNull($handler->hydrate());
     }
 
     /** @test */
@@ -57,7 +57,7 @@ class GeneralTest extends TestCase
 
         $handler->getData()->shouldReceive('get');
 
-        $handler->hydrate();
+        $this->assertNull($handler->hydrate());
     }
 
     public function testPreparingSelect()
@@ -72,7 +72,7 @@ class GeneralTest extends TestCase
             ->once()
         ;
 
-        $handler->prepareSelect();
+        $this->assertNull($handler->prepareSelect());
     }
 
     public function testPreparingCount()
@@ -89,7 +89,7 @@ class GeneralTest extends TestCase
         $query->shouldReceive('count')->once()->andReturn(6);
 
         $handler->prepareSelect();
-        $handler->hydrate();
+        $this->assertNull($handler->hydrate());
         $handler->prepareTotalCount();
 
         $this->assertSame($handler->getParameters()->get('total'), 6);
@@ -303,7 +303,7 @@ class GeneralTest extends TestCase
 
         $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testSettingUpAttributeFilters()
@@ -370,7 +370,7 @@ class GeneralTest extends TestCase
 
         $query->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testGlobalFilterOnQuery()
@@ -383,7 +383,7 @@ class GeneralTest extends TestCase
         $query->shouldReceive('orWhere')->with('bar.baz', 'like', '%Global Filter%')->once();
         $data->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
-        $handler->globalFilter($query, 'like', 'Global Filter');
+        $this->assertNull($handler->globalFilter($query, 'like', 'Global Filter'));
     }
 
     public function testOperatorFilters()
@@ -433,7 +433,7 @@ class GeneralTest extends TestCase
 
         $query->getQuery()->shouldReceive('getConnection')->andReturn(m::mock('Illuminate\Database\MySqlConnection'));
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testNestedFilters()
@@ -475,7 +475,7 @@ class GeneralTest extends TestCase
             return true;
         }))->once();
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testRegexFilters()
@@ -510,7 +510,7 @@ class GeneralTest extends TestCase
             return true;
         }))->once();
 
-        $handler->prepareFilters();
+        $this->assertNull($handler->prepareFilters());
     }
 
     public function testFilteredCount()
@@ -558,7 +558,7 @@ class GeneralTest extends TestCase
 
         $handler->setRequestProvider($provider);
 
-        $handler->prepareSort();
+        $this->assertNull($handler->prepareSort());
     }
 
     public function testSortingByNestedResources3()
@@ -592,8 +592,8 @@ class GeneralTest extends TestCase
 
         $query->orders = 'foo';
 
-        $handler->prepareSort();
-        $handler->hydrate();
+        $this->assertNull($handler->prepareSort());
+        $this->assertNull($handler->hydrate());
 
         $results = $handler->getResults();
 
@@ -628,7 +628,7 @@ class GeneralTest extends TestCase
 
         $query->shouldReceive('get')->andReturn($expected);
 
-        $handler->hydrate();
+        $this->assertNull($handler->hydrate());
 
         $results = $handler->toArray();
 
@@ -659,7 +659,7 @@ class GeneralTest extends TestCase
 
         $handler->setRequestProvider($provider);
 
-        $handler->prepareSort();
+        $this->assertNull($handler->prepareSort());
     }
 
     public function testCalculatingPagination1()
@@ -738,7 +738,7 @@ class GeneralTest extends TestCase
         $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
             [$this->getMockEloquentBuilder(), $this->getSettings()]);
 
-        $handler->preparePagination();
+        $this->assertNull($handler->preparePagination());
     }
 
     public function testSettingUpPaginationWithOnePage()
@@ -858,7 +858,7 @@ class GeneralTest extends TestCase
 
         $handler->getData()->shouldReceive('get')->andReturn($results);
 
-        $handler->hydrate();
+        $this->assertNull($handler->hydrate());
 
         $expected = [
             ['foo' => 'bar', 'baz' => 'qux'],
@@ -915,7 +915,7 @@ class GeneralTest extends TestCase
 
         $handler->getData()->shouldReceive('get')->andReturn($expected);
 
-        $handler->hydrate();
+        $this->assertNull($handler->hydrate());
 
         $results = $handler->toArray();
 
@@ -969,7 +969,7 @@ class GeneralTest extends TestCase
 
         $handler->setRequestProvider($provider);
 
-        $handler->prepareSort();
+        $this->assertNull($handler->prepareSort());
     }
 
     protected function getMockEloquentBuilder()
