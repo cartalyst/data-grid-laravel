@@ -59,7 +59,7 @@ class Environment
      *
      * @return \Cartalyst\DataGrid\DataGrid
      */
-    public function make(Handler $dataHandler, $requestProvider = null): DataGrid
+    public function make(Handler $dataHandler, $requestProvider = null)
     {
         return DataGrid::make($dataHandler, $requestProvider ?: $this->requestProvider);
     }
