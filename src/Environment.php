@@ -57,7 +57,7 @@ class Environment
      * @param \Cartalyst\DataGrid\Contracts\Handler $dataHandler
      * @param mixed                                 $requestProvider
      *
-     * @return \Cartalyst\DataGrid\DataGrid
+     * @return mixed
      */
     public function make(Handler $dataHandler, $requestProvider = null)
     {
