@@ -108,8 +108,7 @@ class FiltersTest extends TestCase
             'Filter 3',
         ]);
 
-
-        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',[
+        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]', [
             $data, $this->getSettings(),
         ]);
         $handler->setRequestProvider($provider);
