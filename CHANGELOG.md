@@ -1,5 +1,11 @@
 # Changelog
 
+### v2.0.0 - 2019-09-11
+
+- BC Break: PHP 7.2 is the minimum required PHP version
+- BC Break: Laravel 6.0 is the minimum supported Laravel version
+- BC Break: DataGrid 5.0 is the minimum supported version
+
 ### v1.0.4 - 2017-09-13
 
 `FIXED`
