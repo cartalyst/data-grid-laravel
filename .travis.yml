@@ -11,6 +11,7 @@ cache:
 
 before_install:
   - composer config -g github-oauth.github.com $CI_USER_TOKEN
+  - phpenv config-rm xdebug.ini || true
 
 install:
   - travis_retry composer install
