@@ -3,6 +3,7 @@ language: php
 php:
   - 7.2
   - 7.3
+  - 7.4
 
 cache:
   directories:
@@ -10,10 +11,9 @@ cache:
 
 before_install:
   - composer config -g github-oauth.github.com $CI_USER_TOKEN
-  - travis_retry composer self-update
 
 install:
-  - travis_retry composer install --no-interaction --prefer-dist
+  - travis_retry composer install
 
 script:
-  - vendor/bin/phpunit --verbose
+  - vendor/bin/phpunit
