@@ -1,6 +1,6 @@
 ### Integration
 
-After installing the package, open your Laravel 6.0+ config file which is located at `config/app.php` and add the following lines.
+After installing the package, open your Laravel 7 config file which is located at `config/app.php` and add the following lines.
 
 In the `$providers` array add the following service provider for this package.
 
