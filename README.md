@@ -2,7 +2,7 @@
 
 [![Build Status][icon-travis]][link-travis]
 
-Laravel 7+ integration for the [Cartalyst Data Grid 6.0](https://cartalyst.com/manual/data-grid/6.0) package.
+Laravel 8 integration for the [Cartalyst Data Grid 7.0](https://cartalyst.com/manual/data-grid/7.0) package.
 
 Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](LICENSE). Code well, rock on.
 
@@ -10,6 +10,7 @@ Part of the Cartalyst Arsenal & licensed [Cartalyst PSL](LICENSE). Code well, ro
 
 Version | Data Grid | Laravel   | PHP Version
 ------- | --------- | --------- | ------------
+4.x     | 7.x       | 8.x       | >= 7.3
 3.x     | 6.x       | 7.x       | >= 7.2.5
 2.x     | 5.x       | 6.x       | >= 7.2
 1.x     | 4.x       | 5.3 - 5.8 | >= 5.6.4
@@ -38,4 +39,4 @@ This software is released under the [Cartalyst PSL](LICENSE) License.
 [link-docs]:   https://cartalyst.com/manual/data-grid-laravel
 [link-travis]: https://travis-ci.com/cartalyst/data-grid-laravel
 
-[icon-travis]: https://travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=3.x
+[icon-travis]: https://travis-ci.com/cartalyst/data-grid-laravel.svg?token=LAut3LMbmBFi3T9j45FH&branch=4.x
