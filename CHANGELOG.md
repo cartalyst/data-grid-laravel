@@ -1,6 +1,6 @@
 # Changelog
 
-### v4.0.0 - TBA
+### v4.0.0 - 2020-09-26
 
 - Updated for Laravel 8 and Data Grid 7.
 
