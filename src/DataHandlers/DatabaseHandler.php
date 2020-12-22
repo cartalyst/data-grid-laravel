@@ -312,7 +312,7 @@ class DatabaseHandler extends AbstractHandler
             // Attempt to find the column in the query builder
             $data = $this->data;
 
-            if (method_exists($data, 'getQuery')) {
+            if (is_object($data) && method_exists($data, 'getQuery')) {
                 $data = $data->getQuery();
             }
 
@@ -515,10 +515,10 @@ class DatabaseHandler extends AbstractHandler
     {
         $this->appends = array_keys($data->attributesToArray());
 
-        if (method_exists($data, 'availableAttributes')) {
+        if (is_object($data) && method_exists($data, 'availableAttributes')) {
             $attributes = $data->availableAttributes()->pluck($this->attributesKey);
 
-            $arrayable = method_exists($attributes, 'toArray');
+            $arrayable = is_object($attributes) && method_exists($attributes, 'toArray');
 
             $this->attributes = $arrayable === true ? $attributes->toArray() : $attributes;
         }
