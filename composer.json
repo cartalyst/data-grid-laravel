@@ -28,11 +28,11 @@
     ],
     "require": {
         "php": "^8.1",
-        "cartalyst/data-grid": "dev-master",
+        "cartalyst/data-grid": "^9.0",
         "illuminate/support": "^10.0"
     },
     "require-dev": {
-        "cartalyst/attributes": "dev-master",
+        "cartalyst/attributes": "^7.0",
         "cartalyst/php-cs-fixer-config": "^2.0",
         "mockery/mockery": "^1.5.1",
         "phpunit/phpunit": "^10.0.7"
