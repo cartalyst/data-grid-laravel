@@ -27,15 +27,15 @@
         }
     ],
     "require": {
-        "php": "^8.0",
-        "cartalyst/data-grid": "^8.0",
-        "illuminate/support": "^9.0"
+        "php": "^8.1",
+        "cartalyst/data-grid": "dev-master",
+        "illuminate/support": "^10.0"
     },
     "require-dev": {
-        "cartalyst/attributes": "^6.0",
+        "cartalyst/attributes": "dev-master",
         "cartalyst/php-cs-fixer-config": "^2.0",
-        "mockery/mockery": "^1.0",
-        "phpunit/phpunit": "^9.0"
+        "mockery/mockery": "^1.5.1",
+        "phpunit/phpunit": "^10.0.7"
     },
     "autoload": {
         "psr-4": {
@@ -55,7 +55,7 @@
     "extra": {
         "component": "package",
         "branch-alias": {
-            "dev-master": "5.0.x-dev"
+            "dev-master": "6.0.x-dev"
         },
         "laravel": {
             "providers": [

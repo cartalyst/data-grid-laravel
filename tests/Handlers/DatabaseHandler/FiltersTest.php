@@ -11,10 +11,10 @@
  * bundled with this package in the LICENSE file.
  *
  * @package    Data Grid Laravel
- * @version    5.0.0
+ * @version    6.0.0
  * @author     Cartalyst LLC
  * @license    Cartalyst PSL
- * @copyright  (c) 2011-2022, Cartalyst LLC
+ * @copyright  (c) 2011-2023, Cartalyst LLC
  * @link       https://cartalyst.com
  */
 
@@ -147,8 +147,10 @@ class FiltersTest extends TestCase
     {
         $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            [$data, $this->getSettings()]);
+        $handler  = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]
+        );
 
         $provider
             ->shouldReceive('getDefaultMethod')
@@ -160,7 +162,8 @@ class FiltersTest extends TestCase
             ->shouldReceive('getMethod')
             ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
-            ->shouldReceive('getFilters')->once()->andReturn([
+            ->shouldReceive('getFilters')->once()->andReturn(
+                [
                     ['foo' => 'null'],
                     ['qux' => 'Filter 2'],
                     'Filter 3',
@@ -202,8 +205,10 @@ class FiltersTest extends TestCase
     {
         $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            [$data, $this->getSettings()]);
+        $handler  = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]
+        );
 
         $provider
             ->shouldReceive('getDefaultMethod')
@@ -253,8 +258,10 @@ class FiltersTest extends TestCase
     {
         $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            [$data, $this->getSettings()]);
+        $handler  = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]
+        );
 
         $provider
             ->shouldReceive('getDefaultMethod')
@@ -266,7 +273,8 @@ class FiltersTest extends TestCase
             ->shouldReceive('getMethod')
             ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
-            ->shouldReceive('getFilters')->once()->andReturn([
+            ->shouldReceive('getFilters')->once()->andReturn(
+                [
                     ['foo' => 'Filter 1'],
                     ['qux' => 'Filter 2'],
                     ['baz' => 'null'],
@@ -322,8 +330,10 @@ class FiltersTest extends TestCase
             ->andReturn($query = m::mock(Builder::class))
         ;
 
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            [$model, $this->getSettings()]);
+        $handler = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$model, $this->getSettings()]
+        );
 
         $provider
             ->shouldReceive('getDefaultMethod')
@@ -335,7 +345,8 @@ class FiltersTest extends TestCase
             ->shouldReceive('getMethod')
             ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
-            ->shouldReceive('getFilters')->once()->andReturn([
+            ->shouldReceive('getFilters')->once()->andReturn(
+                [
                     ['foo' => 'Filter 1'],
                     ['qux' => 'Filter 2'],
                     ['baz' => 'null'],
@@ -383,8 +394,10 @@ class FiltersTest extends TestCase
     {
         $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            [$data, $this->getSettings()]);
+        $handler  = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]
+        );
 
         $provider
             ->shouldReceive('getDefaultMethod')
@@ -396,7 +409,8 @@ class FiltersTest extends TestCase
             ->shouldReceive('getMethod')
             ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
-            ->shouldReceive('getFilters')->once()->andReturn([
+            ->shouldReceive('getFilters')->once()->andReturn(
+                [
                     ['foo' => '|>=5|'],
                     ['foo' => '|<=20|'],
                     ['foo' => '|<>10|'],
@@ -434,8 +448,10 @@ class FiltersTest extends TestCase
     {
         $data     = $this->getMockEloquentBuilder();
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
-        $handler  = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
-            [$data, $this->getSettings()]);
+        $handler  = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[supportsRegexFilters]',
+            [$data, $this->getSettings()]
+        );
 
         $provider
             ->shouldReceive('getDefaultMethod')
@@ -447,7 +463,8 @@ class FiltersTest extends TestCase
             ->shouldReceive('getMethod')
             ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
-            ->shouldReceive('getFilters')->once()->andReturn([
+            ->shouldReceive('getFilters')->once()->andReturn(
+                [
                     ['baz..name' => 'foo'],
                 ]
             );
@@ -489,7 +506,8 @@ class FiltersTest extends TestCase
             ->shouldReceive('getMethod')
             ->shouldReceive('getThreshold')
             ->shouldReceive('getThrottle')
-            ->shouldReceive('getFilters')->once()->andReturn([
+            ->shouldReceive('getFilters')->once()->andReturn(
+                [
                     ['foo' => '/^B.*?\sCorlett$/'],
                 ]
             );
@@ -582,8 +600,6 @@ class FiltersTest extends TestCase
 
         $query->getQuery()->shouldReceive('orderBy')->once();
         $query->shouldReceive('get')->andReturn($expected);
-
-        $query->orders = 'foo';
 
         $handler->prepareSort();
         $handler->hydrate();
@@ -729,16 +745,20 @@ class FiltersTest extends TestCase
 
     public function testSettingUpPaginationLeavesDefaultParametersIfNoFilteredResultsArePresent()
     {
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
-            [$this->getMockEloquentBuilder(), $this->getSettings()]);
+        $handler = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
+            [$this->getMockEloquentBuilder(), $this->getSettings()]
+        );
 
         $this->assertNull($handler->preparePagination());
     }
 
     public function testSettingUpPaginationWithOnePage()
     {
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
-            [$this->getMockEloquentBuilder(), $this->getSettings()]);
+        $handler = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
+            [$this->getMockEloquentBuilder(), $this->getSettings()]
+        );
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
@@ -771,8 +791,10 @@ class FiltersTest extends TestCase
 
     public function testSettingUpPaginationOnPage2Of3()
     {
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
-            [$this->getMockEloquentBuilder(), $this->getSettings()]);
+        $handler = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
+            [$this->getMockEloquentBuilder(), $this->getSettings()]
+        );
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
@@ -798,8 +820,10 @@ class FiltersTest extends TestCase
 
     public function testSettingUpPaginationOnPage3Of3()
     {
-        $handler = m::mock('Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
-            [$this->getMockEloquentBuilder(), $this->getSettings()]);
+        $handler = m::mock(
+            'Cartalyst\DataGrid\Laravel\DataHandlers\DatabaseHandler[calculatePagination]',
+            [$this->getMockEloquentBuilder(), $this->getSettings()]
+        );
 
         $provider = m::mock('Cartalyst\DataGrid\Contracts\Provider');
 
