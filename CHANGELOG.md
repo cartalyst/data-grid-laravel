@@ -1,6 +1,6 @@
 # Changelog
 
-### v6.0.0 - TBA
+### v6.0.0 - 2023-04-06
 
 - Add Laravel 10 support
 
